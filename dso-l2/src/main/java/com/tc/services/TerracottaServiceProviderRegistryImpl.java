@@ -19,6 +19,7 @@
 
 package com.tc.services;
 
+import com.tc.classloader.ServiceLocator;
 import org.terracotta.config.TcConfiguration;
 import org.terracotta.entity.ServiceProvider;
 import org.terracotta.entity.ServiceProviderConfiguration;
@@ -48,7 +49,7 @@ public class TerracottaServiceProviderRegistryImpl implements TerracottaServiceP
       for (ServiceProviderConfiguration config : serviceProviderConfigurationList) {
         Class<? extends ServiceProvider> serviceClazz = config.getServiceProviderType();
         try {
-          ServiceProvider provider = serviceClazz.newInstance();
+          ServiceProvider provider = (ServiceProvider) ServiceLocator.loadClassUsingSeparateClassLoader(serviceClazz.getName(), this.getClass().getClassLoader());
           if (provider.initialize(config)) {
             registerNewServiceProvider(provider);
           }
@@ -64,7 +65,7 @@ public class TerracottaServiceProviderRegistryImpl implements TerracottaServiceP
   
   private void tryServiceLoader(ServiceProviderConfiguration config) {
     boolean initialized = false;
-    for (ServiceProvider service : ServiceLoader.load(config.getServiceProviderType())) {
+    for (ServiceProvider service : ServiceLocator.getImplementations(config.getServiceProviderType(), this.getClass().getClassLoader())) {
       if (service.initialize(config)) {
         if (initialized) {
           throw new AssertionError("double initialization");

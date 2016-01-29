@@ -108,7 +108,6 @@ public class ServiceLocator {
    *
    * @param interfaceName service type to be created
    * @param parent        parent classloader for all component to be loaded
-   * @param <T>           concrete type of service/entity
    * @return list of implementation
    */
   public static List<?> getImplementations(String interfaceName, ClassLoader parent) {
@@ -172,5 +171,26 @@ public class ServiceLocator {
 
     }
     return new ApiClassLoader(apiJarUrls, parent);
+  }
+
+
+  public static Object loadClassUsingSeparateClassLoader(String className, ClassLoader parent) throws IllegalAccessException, InstantiationException {
+
+    URL url = parent.getResource(className.replaceAll("\\.", File.separator).concat(".class"));
+    if(url != null) {
+      String urlString = url.toExternalForm();
+      if (urlString.startsWith("jar:")) {
+        urlString = urlString.substring(4, urlString.indexOf("!"));
+      }
+      try {
+        ComponentURLClassLoader componentURLClassLoader = new ComponentURLClassLoader(new URL[]{new URL(urlString)}, getApiClassLoader(parent), new AnnotationOrDirectoryStrategyChecker());
+        return Class.forName(className, false, componentURLClassLoader).newInstance();
+      } catch (MalformedURLException e) {
+        throw new RuntimeException(e);
+      } catch (ClassNotFoundException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    throw new RuntimeException("Couldn't find " + className + " in the classpath");
   }
 }
