@@ -18,6 +18,8 @@
  */
 package com.tc.net.utils;
 
+import org.slf4j.LoggerFactory;
+
 import com.tc.properties.TCPropertiesConsts;
 import com.tc.properties.TCPropertiesImpl;
 import com.tc.util.Assert;
@@ -38,6 +40,11 @@ public class L2Utils {
     // other performance bottlenecks within the application logic.
     // Note that this value is only the result of observations and reasonable behavior but may need to be tweaked, in the
     // future.
+    String perfTestCommWorkerThreads = System.getProperty("com.tc.perftesting.commworker.threads");
+    if (perfTestCommWorkerThreads != null) {
+      LoggerFactory.getLogger(L2Utils.class).info("PerfTest: Using {} comm worker threads ", perfTestCommWorkerThreads);
+      return Integer.valueOf(perfTestCommWorkerThreads);
+    }
     int def = Math.min(Runtime.getRuntime().availableProcessors(), MAX_DEFAULT_COMM_THREADS);
     return TCPropertiesImpl.getProperties().getInt(TCPropertiesConsts.L2_TCCOM_WORKERTHREADS, def);
   }

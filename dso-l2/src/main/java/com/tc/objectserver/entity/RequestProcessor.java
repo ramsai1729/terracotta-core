@@ -57,6 +57,13 @@ public class RequestProcessor {
     int maxStageSize = TCPropertiesImpl.getProperties().getInt(TCPropertiesConsts.L2_SEDA_STAGE_SINK_CAPACITY);
     int numOfProcessors = L2Utils.getOptimalApplyStageWorkerThreads(true);
     numOfProcessors = Math.max(MIN_NUM_PROCESSORS, numOfProcessors);
+
+    String perfTestRequestProcessorThreads = System.getProperty("com.tc.perftesting.requestprocessor.threads");
+    if (perfTestRequestProcessorThreads != null) {
+      numOfProcessors = Integer.valueOf(perfTestRequestProcessorThreads);
+      LoggerFactory.getLogger(getClass()).info("PerfTest: Using {} request processor threads ", perfTestRequestProcessorThreads);
+    }
+
     requestExecution = stageManager.createStage(ServerConfigurationContext.REQUEST_PROCESSOR_STAGE, EntityRequest.class, new RequestProcessorHandler(), numOfProcessors, maxStageSize, use_direct).getSink();
     syncExecution = stageManager.createStage(ServerConfigurationContext.REQUEST_PROCESSOR_DURING_SYNC_STAGE, EntityRequest.class, new RequestProcessorHandler(), MIN_NUM_PROCESSORS, maxStageSize, use_direct).getSink();
   }
