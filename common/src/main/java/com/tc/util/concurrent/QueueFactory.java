@@ -18,17 +18,27 @@
  */
 package com.tc.util.concurrent;
 
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import com.tc.async.impl.Event;
 
 public class QueueFactory {
 
+  public static final int MAX_QUEUE_CAPACITY = 10240;
+
+
   public <E> BlockingQueue<Event> createInstance(Class<E> type) {
     return new LinkedBlockingQueue<>();
   }
 
   public <E> BlockingQueue<Event> createInstance(Class<E> type, int capacity) {
-    return new LinkedBlockingQueue<>(capacity);
+    if (capacity > MAX_QUEUE_CAPACITY) {
+      LoggerFactory.getLogger(QueueFactory.class).info("Requested {} size but using only {} size", capacity, MAX_QUEUE_CAPACITY);
+      capacity = MAX_QUEUE_CAPACITY;
+    }
+    return new ArrayBlockingQueue<>(capacity);
   }
 }
