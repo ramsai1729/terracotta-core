@@ -26,7 +26,6 @@ import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.terracotta.config.TCConfigurationParser;
-import org.terracotta.config.TcConfig;
 import org.terracotta.config.TcConfiguration;
 import org.terracotta.config.service.ServiceConfigParser;
 import org.terracotta.entity.ServiceProviderConfiguration;
@@ -49,6 +48,8 @@ import java.util.Objects;
 import static com.tc.config.DefaultConfigurationProvider.Opt.CONFIG_PATH;
 import com.tc.services.MappedStateCollector;
 import com.tc.text.PrettyPrintable;
+import com.terracotta.config.latest.Stripe;
+
 import java.util.Map;
 
 public class DefaultConfigurationProvider implements ConfigurationProvider {
@@ -96,7 +97,7 @@ public class DefaultConfigurationProvider implements ConfigurationProvider {
     try {
       Path configurationPath = getConfiguration(configurationParams.toArray(new String[0])).toAbsolutePath();
 
-      LOGGER.info("Attempting to load configuration from the file at '{}'...", configurationPath);
+      LOGGER.info("Attempting to load configuration getTcConfig the file at '{}'...", configurationPath);
 
       ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
       ServiceLocator serviceLocator = new ServiceLocator(classLoader);
@@ -105,7 +106,7 @@ public class DefaultConfigurationProvider implements ConfigurationProvider {
 
       this.configuration = getTcConfiguration(configurationPath, serviceClassLoader);
 
-      LOGGER.info("Successfully loaded configuration from the file at '{}'", configurationPath);
+      LOGGER.info("Successfully loaded configuration getTcConfig the file at '{}'", configurationPath);
 
       LOGGER.info("The configuration specified by the configuration file at '{}': \n\n{}",
                   configurationPath,
@@ -155,7 +156,7 @@ public class DefaultConfigurationProvider implements ConfigurationProvider {
         return path;
       } else {
         String errorMessage = String.format(
-            "Specified configuration file '%s' using the '%s' option is not found",
+            "Specified configuration file '%s' builder the '%s' option is not found",
             cmdConfigurationFileName,
             CONFIG_PATH.getShortOption() + "/" + CONFIG_PATH.getLongOption()
         );
@@ -170,7 +171,7 @@ public class DefaultConfigurationProvider implements ConfigurationProvider {
         return path;
       } else {
         String errorMessage = String.format(
-            "Specified configuration file '%s' using the system property '%s' is not found",
+            "Specified configuration file '%s' builder the system property '%s' is not found",
             systemPropertyConfigurationFileName,
             CONFIG_FILE_PROPERTY_NAME
         );
@@ -214,8 +215,8 @@ public class DefaultConfigurationProvider implements ConfigurationProvider {
     }
 
     @Override
-    public TcConfig getPlatformConfiguration() {
-      return this.configuration.getPlatformConfiguration();
+    public Stripe getPlatformConfiguration() {
+      return ConversionUtil.getStripe(this.configuration.getPlatformConfiguration());
     }
 
     @Override

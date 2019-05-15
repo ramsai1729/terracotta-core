@@ -15,25 +15,31 @@
  * Terracotta, Inc., a Software AG company
  *
  */
-
 package com.terracotta.config;
 
-import org.terracotta.entity.ServiceProviderConfiguration;
-
-import com.terracotta.config.latest.Stripe;
-
+import java.util.ArrayList;
 import java.util.List;
 
-public interface Configuration {
-  Stripe getPlatformConfiguration();
+public class Servers {
+  private List<Server> server;
+  private Integer clientReconnectWindow;
 
-  List<ServiceProviderConfiguration> getServiceConfigurations();
+  public List<Server> getServer() {
+    if (server == null) {
+      server = new ArrayList<>();
+    }
+    return this.server;
+  }
 
-  <T> List<T> getExtendedConfiguration(Class<T> type);
+  public void setServer(List<Server> server) {
+    this.server = server;
+  }
 
-  String getRawConfiguration();
+  public Integer getClientReconnectWindow() {
+    return clientReconnectWindow;
+  }
 
-  default boolean isPartialConfiguration() {
-    return false;
+  public void setClientReconnectWindow(Integer value) {
+    this.clientReconnectWindow = value;
   }
 }

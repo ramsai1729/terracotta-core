@@ -404,7 +404,7 @@ public class DistributedObjectServer implements ServerConnectionValidator {
       System.exit(-1);
     }
 
-    String bindAddress = this.configSetupManager.getServerConfiguration().getTsaPort().getBind();
+    String bindAddress = this.configSetupManager.getServerConfiguration().getBind();
 
     final InetAddress jmxBind = InetAddress.getByName(bindAddress);
     final AddressChecker addressChecker = new AddressChecker();
@@ -448,9 +448,9 @@ public class DistributedObjectServer implements ServerConnectionValidator {
     } catch (UnknownHostException unknown) {
       // ignore
     }
-    final int serverPort = l2DSOConfig.getTsaPort().getValue();
+    final int serverPort = l2DSOConfig.getPort();
     final ProductInfo pInfo = ProductInfo.getInstance();
-    PlatformServer thisServer = new PlatformServer(server.getL2Identifier(), host, hostAddress, bindAddress, serverPort, l2DSOConfig.getGroupPort().getValue(), pInfo.buildVersion(), pInfo.buildID(), TCServerMain.getServer().getStartTime());
+    PlatformServer thisServer = new PlatformServer(server.getL2Identifier(), host, hostAddress, bindAddress, serverPort, l2DSOConfig.getGroupPort(), pInfo.buildVersion(), pInfo.buildID(), TCServerMain.getServer().getStartTime());
     
     final LocalMonitoringProducer monitoringShimService = new LocalMonitoringProducer(this.serviceRegistry, thisServer, this.timer);
     this.serviceRegistry.registerImplementationProvided(monitoringShimService);
@@ -475,7 +475,7 @@ public class DistributedObjectServer implements ServerConnectionValidator {
     boolean wasZapped = false;
     while(!persistor.start(capablities.contains(ProductID.PERMANENT))) {
       wasZapped = true;
-      // make sure peristor is not using any storage service
+      // make sure peristor is not builder any storage service
       persistor.close();
       // Log that that the state was not clean so we are going to clear all service provider state.
       logger.warn("DB state not clean!  Clearing all ServiceProvider state (ZAP request)");
@@ -549,7 +549,7 @@ public class DistributedObjectServer implements ServerConnectionValidator {
 
     ConsistencyManager consistencyMgr = createConsistencyManager(configSetupManager, knownPeers, voteCount);
 
-    final String dsoBind = l2DSOConfig.getTsaPort().getBind();
+    final String dsoBind = l2DSOConfig.getBind();
     this.l1Listener = this.communicationsManager.createListener(new TCSocketAddress(dsoBind, serverPort), true,
                                                                 this.connectionIdFactory, (t)->{
                                                                   return getContext().getClientHandshakeManager().isStarting() || t.getConnectionID().getProductId() == ProductID.DIAGNOSTIC || consistencyMgr.requestTransition(context.getL2Coordinator().getStateManager().getCurrentMode(), 
@@ -1060,11 +1060,11 @@ public class DistributedObjectServer implements ServerConnectionValidator {
   }
 
   private ServerID makeServerNodeID(ServerConfiguration l2DSOConfig) {
-    String host = l2DSOConfig.getGroupPort().getBind();
+    String host = l2DSOConfig.getGroupBind();
     if (TCSocketAddress.WILDCARD_IP.equals(host)) {
       host = l2DSOConfig.getHost();
     }
-    final Node node = new Node(host, l2DSOConfig.getTsaPort().getValue());
+    final Node node = new Node(host, l2DSOConfig.getPort());
     final ServerID aNodeID = new ServerID(node.getServerNodeName(), UUID.getUUID().toString().getBytes());
     logger.info("Creating server nodeID: " + aNodeID);
     return aNodeID;
@@ -1167,7 +1167,7 @@ public class DistributedObjectServer implements ServerConnectionValidator {
    */
   public int getListenPort() {
     final ServerConfiguration l2DSOConfig = this.configSetupManager.getServerConfiguration();
-    final int configValue = l2DSOConfig.getTsaPort().getValue();
+    final int configValue = l2DSOConfig.getPort();
     if (configValue != 0) { return configValue; }
     if (this.l1Listener != null) {
       try {
@@ -1184,7 +1184,7 @@ public class DistributedObjectServer implements ServerConnectionValidator {
 
   public int getGroupPort() {
     final ServerConfiguration l2DSOConfig = this.configSetupManager.getServerConfiguration();
-    final int configValue = l2DSOConfig.getGroupPort().getValue();
+    final int configValue = l2DSOConfig.getGroupPort();
     if (configValue != 0) { return configValue; }
     return -1;
   }

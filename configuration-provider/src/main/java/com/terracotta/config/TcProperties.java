@@ -18,22 +18,20 @@
 
 package com.terracotta.config;
 
-import org.terracotta.entity.ServiceProviderConfiguration;
-
-import com.terracotta.config.latest.Stripe;
-
+import java.util.ArrayList;
 import java.util.List;
 
-public interface Configuration {
-  Stripe getPlatformConfiguration();
+public class TcProperties {
+  private List<Property> property;
 
-  List<ServiceProviderConfiguration> getServiceConfigurations();
+  public List<Property> getProperty() {
+    if (property == null) {
+      property = new ArrayList<>();
+    }
+    return this.property;
+  }
 
-  <T> List<T> getExtendedConfiguration(Class<T> type);
-
-  String getRawConfiguration();
-
-  default boolean isPartialConfiguration() {
-    return false;
+  public void setProperty(List<Property> property) {
+    this.property = property;
   }
 }

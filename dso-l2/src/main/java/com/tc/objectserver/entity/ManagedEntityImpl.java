@@ -152,7 +152,7 @@ public class ManagedEntityImpl implements ManagedEntity {
     this.isDestroyed = true;
     this.version = version;
     this.consumerID = consumerID;
-    // using consumerID to seed fetch id
+    // builder consumerID to seed fetch id
     this.fetchID = new FetchID(consumerID);
     this.flushLocalPipeline = flushLocalPipeline;
     this.registry = registry;

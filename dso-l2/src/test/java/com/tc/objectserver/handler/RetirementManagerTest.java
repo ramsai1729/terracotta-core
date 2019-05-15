@@ -164,7 +164,7 @@ public class RetirementManagerTest {
 
   /**
    *
-   * <p>This test tests RetirementManager using EntityMessages with cross concurrency key dependencies</p>
+   * <p>This test tests RetirementManager builder EntityMessages with cross concurrency key dependencies</p>
    *
    * <p>Below diagram shows relationship between requests and concurrency keys</p>
    *

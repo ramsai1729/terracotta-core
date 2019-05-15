@@ -15,25 +15,34 @@
  * Terracotta, Inc., a Software AG company
  *
  */
-
 package com.terracotta.config;
 
-import org.terracotta.entity.ServiceProviderConfiguration;
+public class TcConfig {
+  private TcProperties tcProperties;
+  private FailoverPriority failoverPriority;
+  private Servers servers;
 
-import com.terracotta.config.latest.Stripe;
+  public TcProperties getTcProperties() {
+    return tcProperties;
+  }
 
-import java.util.List;
+  public void setTcProperties(TcProperties value) {
+    this.tcProperties = value;
+  }
 
-public interface Configuration {
-  Stripe getPlatformConfiguration();
+  public FailoverPriority getFailoverPriority() {
+    return failoverPriority;
+  }
 
-  List<ServiceProviderConfiguration> getServiceConfigurations();
+  public void setFailoverPriority(FailoverPriority value) {
+    this.failoverPriority = value;
+  }
 
-  <T> List<T> getExtendedConfiguration(Class<T> type);
+  public Servers getServers() {
+    return servers;
+  }
 
-  String getRawConfiguration();
-
-  default boolean isPartialConfiguration() {
-    return false;
+  public void setServers(Servers value) {
+    this.servers = value;
   }
 }

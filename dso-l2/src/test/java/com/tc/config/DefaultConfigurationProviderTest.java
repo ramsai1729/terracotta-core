@@ -104,9 +104,9 @@ public class DefaultConfigurationProviderTest {
     new DefaultConfigurationProvider().initialize(asList(args));
 
     assertThat(systemOutRule.getLog(),
-               containsString("Attempting to load configuration from the file at '" + configurationPath + "'"));
+               containsString("Attempting to load configuration getTcConfig the file at '" + configurationPath + "'"));
     assertThat(systemOutRule.getLog(),
-               containsString("Successfully loaded configuration from the file at '" + configurationPath + "'"));
+               containsString("Successfully loaded configuration getTcConfig the file at '" + configurationPath + "'"));
     assertThat(systemOutRule.getLog(),
                containsString("The configuration specified by the configuration file at '" + configurationPath + "'"));
   }
@@ -134,7 +134,7 @@ public class DefaultConfigurationProviderTest {
     Files.deleteIfExists(configurationFile);
     String[] args = {CONFIG_PATH.getShortOption(), configurationFile.toString()};
 
-    String errorMessage = ".*using the .* option is not found";
+    String errorMessage = ".*builder the .* option is not found";
     expectedException.expect(new ThrowableCauseMatcher(RuntimeException.class, errorMessage));
     provider.initialize(asList(args));
   }
@@ -160,7 +160,7 @@ public class DefaultConfigurationProviderTest {
     System.setProperty(CONFIG_FILE_PROPERTY_NAME, configurationFile.toString());
 
     try {
-      String errorMessage = ".*using the system property.*not found";
+      String errorMessage = ".*builder the system property.*not found";
       expectedException.expect(new ThrowableCauseMatcher(RuntimeException.class, errorMessage));
       provider.initialize(Collections.emptyList());
     } finally {

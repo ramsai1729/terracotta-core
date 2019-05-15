@@ -39,13 +39,13 @@ public class GroupConfiguration {
     Node currentNode = null;
     for (Map.Entry<String, ServerConfiguration> member : configMap.entrySet()) {
       ServerConfiguration serverConfiguration = member.getValue();
-      String bindAddress = serverConfiguration.getGroupPort().getBind();
+      String bindAddress = serverConfiguration.getGroupBind();
       if (TCSocketAddress.WILDCARD_IP.equals(bindAddress)) {
         bindAddress = serverConfiguration.getHost();
       }
       Node node = new Node(bindAddress,
-                           serverConfiguration.getTsaPort().getValue(),
-                           serverConfiguration.getGroupPort().getValue());
+                           serverConfiguration.getPort(),
+                           serverConfiguration.getGroupPort());
       if (serverName.equals(member.getKey())) {
         currentNode = node;
       }

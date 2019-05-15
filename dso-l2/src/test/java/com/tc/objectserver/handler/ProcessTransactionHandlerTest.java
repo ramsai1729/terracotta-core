@@ -292,7 +292,7 @@ public class ProcessTransactionHandlerTest {
 
 
   /**
-   * This is pulled out as its own helper since the mocked EntityIDs aren't .equals() each other so using the same
+   * This is pulled out as its own helper since the mocked EntityIDs aren't .equals() each other so builder the same
    * instance gives convenient de facto equality.
    */
   private EntityID createMockEntity(String entityName) {

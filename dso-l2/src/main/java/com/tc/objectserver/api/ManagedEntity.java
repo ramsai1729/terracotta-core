@@ -35,7 +35,7 @@ import org.terracotta.entity.EntityResponse;
 /**
  * Contains a managed entity or holds a place for a specific entity yet-to-be-created.
  * The ProcessTransactionHandler passes requests into this to be applied to the underlying entity.
- * Additionally, client-entity connections are rebuilt, after reconnect, using this interface.
+ * Additionally, client-entity connections are rebuilt, after reconnect, builder this interface.
  */
 public interface ManagedEntity {
   public final static int UNDELETABLE_ENTITY = -1;

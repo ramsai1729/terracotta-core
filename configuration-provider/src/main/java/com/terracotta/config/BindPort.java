@@ -15,25 +15,26 @@
  * Terracotta, Inc., a Software AG company
  *
  */
-
 package com.terracotta.config;
 
-import org.terracotta.entity.ServiceProviderConfiguration;
+public class BindPort {
+  private int value;
 
-import com.terracotta.config.latest.Stripe;
+  private String bind;
 
-import java.util.List;
+  public int getValue() {
+    return value;
+  }
 
-public interface Configuration {
-  Stripe getPlatformConfiguration();
+  public void setValue(int value) {
+    this.value = value;
+  }
 
-  List<ServiceProviderConfiguration> getServiceConfigurations();
+  public String getBind() {
+    return bind;
+  }
 
-  <T> List<T> getExtendedConfiguration(Class<T> type);
-
-  String getRawConfiguration();
-
-  default boolean isPartialConfiguration() {
-    return false;
+  public void setBind(String value) {
+    this.bind = value;
   }
 }

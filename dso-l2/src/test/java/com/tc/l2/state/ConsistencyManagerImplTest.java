@@ -34,11 +34,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.junit.contrib.java.lang.system.ExpectedSystemExit;
-import org.terracotta.config.Consistency;
-import org.terracotta.config.FailoverPriority;
-import org.terracotta.config.Servers;
-import org.terracotta.config.TcConfig;
-import org.terracotta.config.Voter;
+import com.terracotta.config.FailoverPriority;
+import com.terracotta.config.Servers;
+import com.terracotta.config.TcConfig;
+import com.terracotta.config.latest.FailOverPriority;
+import com.terracotta.config.latest.Server;
+import com.terracotta.config.latest.Stripe;
 
 /**
  *
@@ -114,23 +115,32 @@ public class ConsistencyManagerImplTest {
     String avail = "Availability";
     when(fail.getAvailability()).thenReturn(avail);
     when(conf.getFailoverPriority()).thenReturn(fail);
+
+    Stripe stripe = Stripe.builder(
+                              Server.builder().build(),
+                              Server.builder().build()
+                          ).withFailOverPriority(new FailOverPriority.Availability())
+                          .build();
     
-    Assert.assertEquals(-1, ConsistencyManager.parseVoteCount(conf));
+    Assert.assertEquals(-1, ConsistencyManager.parseVoteCount(stripe));
     
     when(conf.getFailoverPriority()).thenReturn(fail);
+
+    stripe = Stripe.builder(
+                       Server.builder().build(),
+                       Server.builder().build()
+                   ).withFailOverPriority(new FailOverPriority.Consistency(1))
+                   .build();
     
-    Consistency c = mock(Consistency.class);
-    Voter voter = mock(Voter.class);
-    when(voter.getCount()).thenReturn(1);
-    
-    when(c.getVoter()).thenReturn(voter);
-    when(fail.getConsistency()).thenReturn(c);
-    when(fail.getAvailability()).thenReturn(null);
-    
-    Assert.assertEquals(1, ConsistencyManager.parseVoteCount(conf));
-    when(voter.getCount()).thenReturn(2);
-    
-    Assert.assertEquals(2, ConsistencyManager.parseVoteCount(conf));
+    Assert.assertEquals(1, ConsistencyManager.parseVoteCount(stripe));
+
+    stripe = Stripe.builder(
+                       Server.builder().build(),
+                       Server.builder().build()
+                   ).withFailOverPriority(new FailOverPriority.Consistency(2))
+                   .build();
+
+    Assert.assertEquals(2, ConsistencyManager.parseVoteCount(stripe));
 
   }
   
@@ -147,25 +157,18 @@ public class ConsistencyManagerImplTest {
 
   @Test
   public void testVoteConfigMandatoryForMultiNode() throws Exception {
-    List serverList = mock(List.class);
-    when(serverList.size()).thenReturn(2);
-    Servers servers = mock(Servers.class);
-    when(servers.getServer()).thenReturn(serverList);
-    TcConfig conf = mock(TcConfig.class);
-    when(conf.getServers()).thenReturn(servers);
     exit.expectSystemExitWithStatus(-1);
-    ConsistencyManager.parseVoteCount(conf);
+    Stripe stripe = Stripe.builder(
+                              Server.builder().build(),
+                              Server.builder().build()
+                          ).build();
+    ConsistencyManager.parseVoteCount(stripe);
   }
 
   @Test
   public void testVoteConfigNotMandatoryForSingleNode() throws Exception {
-    List serverList = mock(List.class);
-    when(serverList.size()).thenReturn(1);
-    Servers servers = mock(Servers.class);
-    when(servers.getServer()).thenReturn(serverList);
-    TcConfig conf = mock(TcConfig.class);
-    when(conf.getServers()).thenReturn(servers);
-    Assert.assertEquals(-1, ConsistencyManager.parseVoteCount(conf));
+    Stripe stripe = Stripe.builder(Server.builder().build()).build();
+    Assert.assertEquals(-1, ConsistencyManager.parseVoteCount(stripe));
   }
 
 }

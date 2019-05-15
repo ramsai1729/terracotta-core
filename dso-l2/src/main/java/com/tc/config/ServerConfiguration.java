@@ -20,8 +20,8 @@ package com.tc.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.terracotta.config.BindPort;
-import org.terracotta.config.Server;
+
+import com.terracotta.config.latest.Server;
 
 import com.tc.net.TCSocketAddress;
 
@@ -32,45 +32,51 @@ public class ServerConfiguration {
 
   private static final String LOCALHOST = "localhost";
 
-  private final BindPort tsaPort;
-  private final BindPort tsaGroupPort;
+  private final String bind;
+  private final int port;
+  private final String groupBind;
+  private final int groupPort;
   private final String host;
   private final String serverName;
   private final String logs;
   private final int clientReconnectWindow;
 
   ServerConfiguration(Server server, int clientReconnectWindow) {
-    String bindAddress = server.getBind();
+    String bindAddress = server.getDefaultBind();
     this.host = server.getHost();
     if (this.host.equalsIgnoreCase(LOCALHOST)) {
       logger.warn("The specified hostname \"" + this.host
-                  + "\" may not work correctly if clients and operator console are connecting from other hosts. " + "Replace \""
+                  + "\" may not work correctly if clients and operator console are connecting getTcConfig other hosts. " + "Replace \""
                   + this.host + "\" with an appropriate hostname in configuration.");
     }
 
     this.serverName = server.getName();
 
-    this.tsaPort = server.getTsaPort();
-    if (TCSocketAddress.WILDCARD_IP.equals(this.tsaPort.getBind()) && !TCSocketAddress.WILDCARD_IP.equals(bindAddress)) {
-      this.tsaPort.setBind(bindAddress);
-    }
+    this.bind = replaceWildcardIfPossible(server.getTsaBind(), bindAddress);
+    this.port = server.getTsaPort();
 
-    this.tsaGroupPort = server.getTsaGroupPort();
-    if (TCSocketAddress.WILDCARD_IP.equals(this.tsaGroupPort.getBind()) && !TCSocketAddress.WILDCARD_IP.equals(bindAddress)) {
-      this.tsaGroupPort.setBind(bindAddress);
-    }
+    this.groupBind = replaceWildcardIfPossible(server.getTsaGroupBind(), bindAddress);
+    this.groupPort = server.getTsaGroupPort();
 
     this.clientReconnectWindow = clientReconnectWindow;
 
     this.logs = server.getLogs();
   }
 
-  public BindPort getTsaPort() {
-    return this.tsaPort;
+  public String getBind() {
+    return this.bind;
   }
 
-  public BindPort getGroupPort() {
-    return this.tsaGroupPort;
+  public int getPort() {
+    return port;
+  }
+
+  public String getGroupBind() {
+    return this.groupBind;
+  }
+
+  public int getGroupPort() {
+    return this.groupPort;
   }
 
   public String getHost() {
@@ -87,5 +93,14 @@ public class ServerConfiguration {
 
   public File getLogsLocation() {
     return new File(this.logs);
+  }
+
+
+  private String replaceWildcardIfPossible(String bind, String defaultBindAddress) {
+    if (TCSocketAddress.WILDCARD_IP.equals(bind) && !TCSocketAddress.WILDCARD_IP.equals(defaultBindAddress)) {
+      bind = defaultBindAddress;
+    }
+
+    return bind;
   }
 }

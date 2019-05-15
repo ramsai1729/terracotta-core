@@ -18,7 +18,7 @@
 package com.tc.config;
 
 import org.junit.Test;
-import org.terracotta.config.BindPort;
+import com.terracotta.config.BindPort;
 
 import com.tc.net.TCSocketAddress;
 import com.tc.net.groups.Node;
@@ -123,8 +123,8 @@ public class GroupConfigurationTest {
     when(groupPortMock.getBind()).thenReturn(groupBindAddress);
     when(groupPortMock.getValue()).thenReturn(groupPort);
 
-    when(serverConfiguration.getTsaPort()).thenReturn(tsaPortMock);
-    when(serverConfiguration.getGroupPort()).thenReturn(groupPortMock);
+    when(serverConfiguration.getPort()).thenReturn(0);
+    when(serverConfiguration.getGroupPort()).thenReturn(0);
     when(serverConfiguration.getName()).thenReturn(serverName);
     when(serverConfiguration.getHost()).thenReturn("localhost");
 

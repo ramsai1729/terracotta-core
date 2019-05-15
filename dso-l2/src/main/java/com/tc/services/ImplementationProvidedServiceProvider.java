@@ -61,7 +61,7 @@ public interface ImplementationProvidedServiceProvider extends StateDumpable {
   /**
    * Clears up state for this ServiceProvider including any persisted state
    *
-   * Generally platform calls this method during platform initialization so there won't be any entities using
+   * Generally platform calls this method during platform initialization so there won't be any entities builder
    * underlying services
    *
    * If there are any failures when clearing state, this method should inform Platform by throwing {@link ServiceProviderCleanupException}

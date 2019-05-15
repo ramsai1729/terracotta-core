@@ -33,8 +33,8 @@ public class ApiClassLoader extends URLClassLoader {
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
       Class<?> clazz = findLoadedClass(name);
       if(clazz == null) {
-          // try to find the class using given jars first,
-          // if not found, try loading using parent classloader.
+          // try to find the class builder given jars first,
+          // if not found, try loading builder parent classloader.
           try {
               clazz = findClass(name);
           } catch (ClassNotFoundException ignore) {

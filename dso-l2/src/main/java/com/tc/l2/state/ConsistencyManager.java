@@ -21,7 +21,9 @@ package com.tc.l2.state;
 import com.tc.logging.TCLogging;
 import com.tc.net.NodeID;
 import org.slf4j.Logger;
-import org.terracotta.config.TcConfig;
+
+import com.terracotta.config.latest.FailOverPriority;
+import com.terracotta.config.latest.Stripe;
 
 import java.util.Collection;
 
@@ -60,24 +62,24 @@ public interface ConsistencyManager {
   
   long getCurrentTerm();
   
-  static int parseVoteCount(TcConfig config) {
+  static int parseVoteCount(Stripe config) {
     Logger consoleLogger = TCLogging.getConsoleLogger();
-    if (config.getServers().getServer().size() == 1) {
+    if (config.getServers().size() == 1) {
       return -1;
     }
-    if (config.getFailoverPriority() == null) {
+    if (config.getFailOverPriority() == null) {
       consoleLogger.error("*****************************************************************************");
       consoleLogger.error("* Failover priority is not specified and it is a mandatory configuration. *");
       consoleLogger.error("*****************************************************************************");
       System.exit(-1);
     }
-    if (config.getFailoverPriority().getAvailability() != null) {
+    if (config.getFailOverPriority().getClass().equals(FailOverPriority.Availability.class)) {
       consoleLogger.warn("Running the server in AVAILABILITY mode with the risk of split brain scenarios.");
       return -1;
     }
     try {
       consoleLogger.warn("Running the server in CONSISTENCY mode with compromised availability of the cluster.");
-      int voters = config.getFailoverPriority().getConsistency().getVoter().getCount();
+      int voters = ((FailOverPriority.Consistency)config.getFailOverPriority()).getVoterCount();
       if (voters < 0) {
         throw new IllegalArgumentException("the voter count cannot be negative");
       }

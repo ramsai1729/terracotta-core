@@ -50,7 +50,7 @@ public class PlatformConfigurationImpl implements PlatformConfiguration {
 
   @Override
   public int getTsaPort() {
-    return serverConfig.getTsaPort().getValue();
+    return serverConfig.getPort();
   }
 
   @Override

@@ -17,10 +17,7 @@
  */
 package com.tc.config;
 
-import org.terracotta.config.Property;
-import org.terracotta.config.Server;
-import org.terracotta.config.Servers;
-import org.terracotta.config.TcProperties;
+import com.terracotta.config.latest.Server;
 
 import com.tc.classloader.ServiceLocator;
 import com.tc.config.schema.setup.ConfigurationSetupException;
@@ -43,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.Set;
 
 public class ServerConfigurationManager implements PrettyPrintable {
@@ -66,11 +64,7 @@ public class ServerConfigurationManager implements PrettyPrintable {
     this.configuration = configuration;
     this.serviceLocator = new ServiceLocator(classLoader);
 
-    Servers servers = configuration.getPlatformConfiguration().getServers();
-
-    if (servers == null || servers.getServer() == null) {
-      throw new NullPointerException("servers is null");
-    }
+    List<Server> servers = configuration.getPlatformConfiguration().getServers();
 
     Server defaultServer;
     if (serverName != null) {
@@ -79,7 +73,8 @@ public class ServerConfigurationManager implements PrettyPrintable {
       defaultServer = getDefaultServer(servers);
     }
 
-    this.serverConfiguration = new ServerConfiguration(defaultServer, servers.getClientReconnectWindow());
+    this.serverConfiguration = new ServerConfiguration(defaultServer,
+                                                       configuration.getPlatformConfiguration().getReconnectWindow());
 
     Map<String, ServerConfiguration> serverConfigurationMap = getServerConfigurationMap(servers);
 
@@ -89,7 +84,7 @@ public class ServerConfigurationManager implements PrettyPrintable {
 
     this.startUpArgs = Arrays.copyOf(startUpArgs, startUpArgs.length);
 
-    processTcProperties(configuration.getPlatformConfiguration().getTcProperties());
+    processTcProperties(configuration.getPlatformConfiguration().getProperties());
   }
 
   public String[] getProcessArguments() {
@@ -129,8 +124,8 @@ public class ServerConfigurationManager implements PrettyPrintable {
     return configuration;
   }
 
-  private static Server findServer(Servers servers, String serverName) throws ConfigurationSetupException {
-    for (Server server : servers.getServer()) {
+  private static Server findServer(List<Server> servers, String serverName) throws ConfigurationSetupException {
+    for (Server server : servers) {
       if (server.getName().equals(serverName)) {
         return server;
       }
@@ -141,8 +136,7 @@ public class ServerConfigurationManager implements PrettyPrintable {
                                           + "Please check your settings and try again.");
   }
 
-  private Server getDefaultServer(Servers servers) throws ConfigurationSetupException {
-    List<Server> serverList = servers.getServer();
+  private Server getDefaultServer(List<Server> serverList) throws ConfigurationSetupException {
     if (serverList.size() == 1) {
       return serverList.get(0);
     }
@@ -159,7 +153,7 @@ public class ServerConfigurationManager implements PrettyPrintable {
                                                   + serverList.size() + " servers defined in the Terracotta configuration file. "
                                                   + "The script can not automatically choose between the following server names: "
                                                   + defaultServer.getName() + ", " + server.getName()
-                                                  + ". Pass the desired server name to the script using " + "the -n flag.");
+                                                  + ". Pass the desired server name to the script builder " + "the -n flag.");
 
           }
         }
@@ -187,23 +181,22 @@ public class ServerConfigurationManager implements PrettyPrintable {
     return localAddresses;
   }
 
-  private Map<String, ServerConfiguration> getServerConfigurationMap(Servers servers) {
+  private Map<String, ServerConfiguration> getServerConfigurationMap(List<Server> servers) {
     Map<String, ServerConfiguration> serverConfigurationMap = new HashMap<>();
-    for (Server server : servers.getServer()) {
+    for (Server server : servers) {
       if (server.getName() != null) {
-        serverConfigurationMap.put(server.getName(), new ServerConfiguration(server, servers.getClientReconnectWindow()));
+        serverConfigurationMap.put(server.getName(), new ServerConfiguration(server,
+                                                                             configuration.getPlatformConfiguration().getReconnectWindow()));
       }
     }
     return serverConfigurationMap;
   }
 
-  private static void processTcProperties(TcProperties tcProperties) {
+  private static void processTcProperties(Properties tcProperties) {
     Map<String, String> propMap = new HashMap<>();
 
-    if (tcProperties != null) {
-      for (Property tcp : tcProperties.getProperty()) {
-        propMap.put(tcp.getName().trim(), tcp.getValue().trim());
-      }
+    for (Map.Entry<Object, Object> entry : tcProperties.entrySet()) {
+      propMap.put((String)entry.getKey(), (String)entry.getValue());
     }
 
     TCPropertiesImpl.getProperties().overwriteTcPropertiesFromConfig(propMap);

@@ -15,25 +15,26 @@
  * Terracotta, Inc., a Software AG company
  *
  */
-
 package com.terracotta.config;
 
-import org.terracotta.entity.ServiceProviderConfiguration;
+public class Property {
+  private String name;
 
-import com.terracotta.config.latest.Stripe;
+  private String value;
 
-import java.util.List;
+  public String getName() {
+    return name;
+  }
 
-public interface Configuration {
-  Stripe getPlatformConfiguration();
+  public void setName(String value) {
+    this.name = value;
+  }
 
-  List<ServiceProviderConfiguration> getServiceConfigurations();
+  public String getValue() {
+    return value;
+  }
 
-  <T> List<T> getExtendedConfiguration(Class<T> type);
-
-  String getRawConfiguration();
-
-  default boolean isPartialConfiguration() {
-    return false;
+  public void setValue(String value) {
+    this.value = value;
   }
 }

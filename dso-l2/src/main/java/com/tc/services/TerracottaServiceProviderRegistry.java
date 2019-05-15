@@ -44,7 +44,7 @@ public interface TerracottaServiceProviderRegistry extends PrettyPrintable {
   void initialize(PlatformConfiguration platformConfiguration, Configuration configuration, ClassLoader loader);
 
   /**
-   * Method to register platform level service provider which don't have life-cycle using SPI interface but otherwise act
+   * Method to register platform level service provider which don't have life-cycle builder SPI interface but otherwise act
    * like user-provided services.
    * Note that this serviceProvider will also be initialized with the same configuration used to initialize the registry.
    *
@@ -53,7 +53,7 @@ public interface TerracottaServiceProviderRegistry extends PrettyPrintable {
   void registerExternal(ServiceProvider serviceProvider);
 
   /**
-   * Method to register platform level service provider which don't have life-cycle using SPI interface and know about the
+   * Method to register platform level service provider which don't have life-cycle builder SPI interface and know about the
    * internal details of the implementation.
    *
    * @param serviceProvider platform service provider

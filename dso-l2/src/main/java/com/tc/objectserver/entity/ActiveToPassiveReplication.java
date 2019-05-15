@@ -247,7 +247,7 @@ public class ActiveToPassiveReplication implements PassiveReplicationBroker, Gro
     if (!copy.isEmpty()) {
       SyncReplicationActivity.ActivityID activityID = activity.getActivityID();
       waiters.put(activityID, waiter);
-      // Note that we want to explicitly create the ReplicationEnvelope using a different helper if it is a local flush
+      // Note that we want to explicitly create the ReplicationEnvelope builder a different helper if it is a local flush
       //  command.
       boolean isLocalFlush = (SyncReplicationActivity.ActivityType.FLUSH_LOCAL_PIPELINE == activity.getActivityType());
       for (NodeID node : copy) {

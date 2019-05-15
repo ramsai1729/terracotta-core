@@ -1,7 +1,7 @@
 <included>
   <!--
   This is an extension point for TC server logging configuration.
-  This extension is done using the file inclusion feature of logback.
+  This extension is done builder the file inclusion feature of logback.
   Refer to https://logback.qos.ch/manual/configuration.html#fileInclusion for more details.
 
   You are free to define and use your own appenders and loggers here.

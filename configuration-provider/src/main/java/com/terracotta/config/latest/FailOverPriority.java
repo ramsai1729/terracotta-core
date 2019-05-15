@@ -15,25 +15,23 @@
  * Terracotta, Inc., a Software AG company
  *
  */
+package com.terracotta.config.latest;
 
-package com.terracotta.config;
+public interface FailOverPriority {
 
-import org.terracotta.entity.ServiceProviderConfiguration;
 
-import com.terracotta.config.latest.Stripe;
+  class Availability implements FailOverPriority {
+  }
 
-import java.util.List;
+  class Consistency implements FailOverPriority {
+    private final int voterCount;
 
-public interface Configuration {
-  Stripe getPlatformConfiguration();
+    public Consistency(int voterCount) {
+      this.voterCount = voterCount;
+    }
 
-  List<ServiceProviderConfiguration> getServiceConfigurations();
-
-  <T> List<T> getExtendedConfiguration(Class<T> type);
-
-  String getRawConfiguration();
-
-  default boolean isPartialConfiguration() {
-    return false;
+    public int getVoterCount() {
+      return voterCount;
+    }
   }
 }

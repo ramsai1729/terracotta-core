@@ -79,7 +79,7 @@ public class EntityClientCommunicatorService implements ClientCommunicator {
   @SuppressWarnings("unchecked")
   private <R extends EntityResponse> byte[] serialize(MessageCodec<?, R> codec, EntityResponse response) throws MessageCodecException {
     // We do this downcast, inline, instead of asking the codec (since a safer cast is all it could do, anyway).
-    // This should be safe as we received this object from an entity using this codec. 
+    // This should be safe as we received this object from an entity builder this codec.
     return codec.encodeResponse((R)response);
   }
 }

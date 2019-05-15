@@ -20,18 +20,16 @@ package com.tc.config;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.terracotta.config.BindPort;
-import org.terracotta.config.Property;
-import org.terracotta.config.Server;
-import org.terracotta.config.Servers;
-import org.terracotta.config.TcConfig;
-import org.terracotta.config.TcProperties;
 
 import com.tc.config.schema.setup.ConfigurationSetupException;
 import com.tc.net.TCSocketAddress;
 import com.tc.net.groups.Node;
 import com.tc.properties.TCPropertiesImpl;
 import com.terracotta.config.Configuration;
+import com.terracotta.config.latest.Server;
+import com.terracotta.config.latest.Stripe;
+
+import java.util.Properties;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -43,6 +41,7 @@ import static org.mockito.Mockito.when;
 
 public class ServerConfigurationManagerTest {
 
+  private static final String LOCALHOST = "localhost";
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
 
@@ -54,13 +53,8 @@ public class ServerConfigurationManagerTest {
   public void testSingleServerValidConfiguration() throws Exception {
     Configuration configuration = mock(Configuration.class);
 
-    TcConfig tcConfig = new TcConfig();
-    when(configuration.getPlatformConfiguration()).thenReturn(tcConfig);
-
-    Servers servers = new Servers();
-    servers.getServer().add(createServer(0));
-    servers.setClientReconnectWindow(100);
-    tcConfig.setServers(servers);
+    Stripe stripe = Stripe.builder(createServer(0)).withReconnectWindow(100).build();
+    when(configuration.getPlatformConfiguration()).thenReturn(stripe);
 
     boolean consistentStartup = true;
     String[] processArgs = new String[] {"arg1", "arg2"};
@@ -91,13 +85,8 @@ public class ServerConfigurationManagerTest {
   public void testSingleServerWithServerNameNull() throws Exception {
     Configuration configuration = mock(Configuration.class);
 
-    TcConfig tcConfig = new TcConfig();
-    when(configuration.getPlatformConfiguration()).thenReturn(tcConfig);
-
-    Servers servers = new Servers();
-    servers.getServer().add(createServer(0));
-    servers.setClientReconnectWindow(100);
-    tcConfig.setServers(servers);
+    Stripe stripe = Stripe.builder(createServer(0)).withReconnectWindow(100).build();
+    when(configuration.getPlatformConfiguration()).thenReturn(stripe);
 
     boolean consistentStartup = true;
     String[] processArgs = new String[] {"arg1", "arg2"};
@@ -115,13 +104,8 @@ public class ServerConfigurationManagerTest {
   public void testSingleServerWithInvalidServerName() throws Exception {
     Configuration configuration = mock(Configuration.class);
 
-    TcConfig tcConfig = new TcConfig();
-    when(configuration.getPlatformConfiguration()).thenReturn(tcConfig);
-
-    Servers servers = new Servers();
-    servers.getServer().add(createServer(0));
-    servers.setClientReconnectWindow(100);
-    tcConfig.setServers(servers);
+    Stripe stripe = Stripe.builder(createServer(0)).withReconnectWindow(100).build();
+    when(configuration.getPlatformConfiguration()).thenReturn(stripe);
 
     boolean consistentStartup = true;
     String[] processArgs = new String[] {"arg1", "arg2"};
@@ -129,10 +113,10 @@ public class ServerConfigurationManagerTest {
     expectedException.expectMessage("does not exist in the specified configuration");
 
     new ServerConfigurationManager("not-a-server-name",
-                                                                        configuration,
-                                                                        consistentStartup,
-                                                                        Thread.currentThread().getContextClassLoader(),
-                                                                        processArgs);
+                                   configuration,
+                                   consistentStartup,
+                                   Thread.currentThread().getContextClassLoader(),
+                                   processArgs);
   }
 
   @Test
@@ -140,14 +124,11 @@ public class ServerConfigurationManagerTest {
     Configuration configuration = mock(Configuration.class);
     int currentServerIndex = 1;
 
-    TcConfig tcConfig = new TcConfig();
-    when(configuration.getPlatformConfiguration()).thenReturn(tcConfig);
-
-    Servers servers = new Servers();
-    servers.getServer().add(createServer(0));
-    servers.getServer().add(createServer(1));
-    servers.setClientReconnectWindow(100);
-    tcConfig.setServers(servers);
+    Stripe stripe = Stripe.builder(
+                              createServer(0),
+                              createServer(1)
+                          ).withReconnectWindow(100).build();
+    when(configuration.getPlatformConfiguration()).thenReturn(stripe);
 
     boolean consistentStartup = false;
     String[] processArgs = new String[] {"arg1", "arg2"};
@@ -178,14 +159,12 @@ public class ServerConfigurationManagerTest {
   public void testMultipleServersWithServerNameNull() throws Exception {
     Configuration configuration = mock(Configuration.class);
 
-    TcConfig tcConfig = new TcConfig();
-    when(configuration.getPlatformConfiguration()).thenReturn(tcConfig);
-
-    Servers servers = new Servers();
-    servers.getServer().add(createServer(0));
-    servers.getServer().add(createServer(1));
-    servers.setClientReconnectWindow(100);
-    tcConfig.setServers(servers);
+    Stripe stripe = Stripe.builder(
+                              createServer(0),
+                              createServer(1)
+                          ).withReconnectWindow(100)
+                          .build();
+    when(configuration.getPlatformConfiguration()).thenReturn(stripe);
 
     String[] processArgs = new String[] {"arg1", "arg2"};
     expectedException.expect(ConfigurationSetupException.class);
@@ -201,14 +180,11 @@ public class ServerConfigurationManagerTest {
   public void testMultipleServersWithInvalidServerName() throws Exception {
     Configuration configuration = mock(Configuration.class);
 
-    TcConfig tcConfig = new TcConfig();
-    when(configuration.getPlatformConfiguration()).thenReturn(tcConfig);
-
-    Servers servers = new Servers();
-    servers.getServer().add(createServer(0));
-    servers.getServer().add(createServer(1));
-    servers.setClientReconnectWindow(100);
-    tcConfig.setServers(servers);
+    Stripe stripe = Stripe.builder(
+                              createServer(0),
+                              createServer(1)
+                          ).withReconnectWindow(100).build();
+    when(configuration.getPlatformConfiguration()).thenReturn(stripe);
 
     String[] processArgs = new String[] {"arg1", "arg2"};
     expectedException.expect(ConfigurationSetupException.class);
@@ -226,22 +202,18 @@ public class ServerConfigurationManagerTest {
     Configuration configuration = mock(Configuration.class);
     int currentServerIndex = 1;
 
-    TcConfig tcConfig = new TcConfig();
-    when(configuration.getPlatformConfiguration()).thenReturn(tcConfig);
-    TcProperties tcProperties = new TcProperties();
-    Property tcProperty = new Property();
     String testKey = "some-tc-property-key";
     String testValue = "value";
-    tcProperty.setName(testKey);
-    tcProperty.setValue(testValue);
-    tcProperties.getProperty().add(tcProperty);
-    tcConfig.setTcProperties(tcProperties);
 
-    Servers servers = new Servers();
-    servers.getServer().add(createServer(0));
-    servers.getServer().add(createServer(1));
-    servers.setClientReconnectWindow(100);
-    tcConfig.setServers(servers);
+    Properties properties = new Properties();
+    properties.put(testKey, testValue);
+
+    Stripe stripe = Stripe.builder(
+                              createServer(0),
+                              createServer(1)
+                          ).withProperties(properties)
+                          .withReconnectWindow(100).build();
+    when(configuration.getPlatformConfiguration()).thenReturn(stripe);
 
     boolean consistentStartup = false;
     String[] processArgs = new String[] {"arg1", "arg2"};
@@ -256,21 +228,17 @@ public class ServerConfigurationManagerTest {
 
 
   private static Server createServer(int serverIndex) {
-    Server server = new Server();
-    server.setName(TEST_SERVER_NAMES[serverIndex]);
-    server.setBind("localhost");
-    server.setHost("localhost");
-    BindPort tsaPortBind = new BindPort();
-    tsaPortBind.setBind(TCSocketAddress.WILDCARD_IP);
-    tsaPortBind.setValue(TEST_SERVER_PORTS[serverIndex]);
-    server.setTsaPort(tsaPortBind);
-    BindPort groupPortBind = new BindPort();
-    groupPortBind.setBind(TCSocketAddress.WILDCARD_IP);
-    groupPortBind.setValue(TEST_GROUP_PORTS[serverIndex]);
-    server.setTsaGroupPort(groupPortBind);
-
-    return server;
+    return Server.builder()
+                 .withName(TEST_SERVER_NAMES[serverIndex])
+                 .withHost(LOCALHOST)
+                 .withTsaBind(TCSocketAddress.WILDCARD_IP)
+                 .withTsaPort(TEST_SERVER_PORTS[serverIndex])
+                 .withTsaGroupBind(TCSocketAddress.WILDCARD_IP)
+                 .withTsaGroupPort(TEST_SERVER_PORTS[serverIndex])
+                 .build();
   }
+
+
 
   private static Node createNode(int serverIndex) {
     return new Node("localhost", TEST_SERVER_PORTS[serverIndex], TEST_GROUP_PORTS[serverIndex]);

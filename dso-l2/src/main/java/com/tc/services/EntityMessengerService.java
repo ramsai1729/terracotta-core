@@ -45,7 +45,7 @@ import org.terracotta.exception.EntityException;
 
 /**
  * Implements the IEntityMessenger interface by maintaining a "fake" EntityDescriptor (as there is no actual reference from
- * a client) and using that to send "fake" VoltronEntityMessage instances into the server's message sink.
+ * a client) and builder that to send "fake" VoltronEntityMessage instances into the server's message sink.
  */
 public class EntityMessengerService<M extends EntityMessage, R extends EntityResponse> implements IEntityMessenger<M, R>, LifecycleListener {
   private final AtomicLong NEXT_FAKE_TXN_ID = new AtomicLong();

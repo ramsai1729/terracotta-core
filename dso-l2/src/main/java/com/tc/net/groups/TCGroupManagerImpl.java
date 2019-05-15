@@ -172,7 +172,7 @@ public class TCGroupManagerImpl implements GroupManager<AbstractGroupMessage>, C
     ServerConfiguration l2DSOConfig = configSetupManager.getServerConfiguration();
     serverCount = configSetupManager.allCurrentlyKnownServers().length;
     
-    this.groupPort = l2DSOConfig.getGroupPort().getValue();
+    this.groupPort = l2DSOConfig.getGroupPort();
     this.weightGeneratorFactory = weightGenerator;
 
     TCSocketAddress socketAddress;
@@ -184,7 +184,7 @@ public class TCGroupManagerImpl implements GroupManager<AbstractGroupMessage>, C
       groupConnectPort = TCPropertiesImpl.getProperties()
           .getInt(TCPropertiesConsts.L2_NHA_TCGROUPCOMM_RECONNECT_L2PROXY_TO_PORT, groupPort);
 
-      socketAddress = new TCSocketAddress(l2DSOConfig.getTsaPort().getBind(), groupConnectPort);
+      socketAddress = new TCSocketAddress(l2DSOConfig.getBind(), groupConnectPort);
     } catch (UnknownHostException e) {
       throw new TCRuntimeException(e);
     }

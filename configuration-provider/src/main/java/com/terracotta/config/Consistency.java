@@ -15,25 +15,16 @@
  * Terracotta, Inc., a Software AG company
  *
  */
-
 package com.terracotta.config;
 
-import org.terracotta.entity.ServiceProviderConfiguration;
+public class Consistency {
+  private Voter voter;
 
-import com.terracotta.config.latest.Stripe;
+  public Voter getVoter() {
+    return voter;
+  }
 
-import java.util.List;
-
-public interface Configuration {
-  Stripe getPlatformConfiguration();
-
-  List<ServiceProviderConfiguration> getServiceConfigurations();
-
-  <T> List<T> getExtendedConfiguration(Class<T> type);
-
-  String getRawConfiguration();
-
-  default boolean isPartialConfiguration() {
-    return false;
+  public void setVoter(Voter value) {
+    this.voter = value;
   }
 }
