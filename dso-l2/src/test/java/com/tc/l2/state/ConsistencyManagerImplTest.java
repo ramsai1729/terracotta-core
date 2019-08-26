@@ -20,8 +20,11 @@ package com.tc.l2.state;
 
 import com.tc.net.NodeID;
 import com.tc.objectserver.impl.JMXSubsystem;
+import com.tc.objectserver.impl.Topology;
+import com.tc.objectserver.impl.TopologyProvider;
 import com.tc.util.Assert;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 import org.junit.After;
@@ -30,6 +33,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+
+import static java.util.Arrays.asList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -73,7 +78,8 @@ public class ConsistencyManagerImplTest {
   @Test
   public void testVoteThreshold() throws Exception {
     String voter = UUID.randomUUID().toString();
-    ConsistencyManagerImpl impl = new ConsistencyManagerImpl(1, 1);
+    TopologyProvider.get().setTopology(new Topology(new HashSet<>(asList("localhost:9410", "localhost:9510")), 1));
+    ConsistencyManagerImpl impl = new ConsistencyManagerImpl();
     JMXSubsystem caller = new JMXSubsystem();
     caller.call(ServerVoterManager.MBEAN_NAME, "registerVoter", voter);
     long term = Long.parseLong(caller.call(ServerVoterManager.MBEAN_NAME, "heartbeat", voter));
@@ -101,7 +107,7 @@ public class ConsistencyManagerImplTest {
     Assert.assertTrue(allowed);
     Assert.assertTrue(Boolean.parseBoolean(caller.call(ServerVoterManager.MBEAN_NAME, "deregisterVoter", voter)));
   }
-  
+
   @Test
   public void testVoteConfig() throws Exception {
     List serverList = mock(List.class);
@@ -136,7 +142,8 @@ public class ConsistencyManagerImplTest {
   
   @Test
   public void testAddClientIsNotPersistent() throws Exception {
-    ConsistencyManagerImpl impl = new ConsistencyManagerImpl(1, 1);
+    TopologyProvider.get().setTopology(new Topology(new HashSet<>(asList("localhost:9410", "localhost:9510")), 1));
+    ConsistencyManagerImpl impl = new ConsistencyManagerImpl();
     long cterm = impl.getCurrentTerm();
     boolean granted = impl.requestTransition(ServerMode.ACTIVE, mock(NodeID.class), ConsistencyManager.Transition.ADD_CLIENT);
     Assert.assertFalse(granted);

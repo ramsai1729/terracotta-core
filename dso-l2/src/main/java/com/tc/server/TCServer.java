@@ -27,6 +27,7 @@ import com.tc.util.State;
 
 
 public interface TCServer {
+  boolean addPassive(String hostPort);
   String[] processArguments();
 
   void start() throws Exception;

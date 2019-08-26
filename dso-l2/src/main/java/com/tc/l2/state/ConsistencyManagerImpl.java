@@ -22,6 +22,7 @@ import com.tc.l2.ha.WeightGeneratorFactory;
 import com.tc.logging.TCLogging;
 import com.tc.net.NodeID;
 import com.tc.net.groups.GroupEventsListener;
+import com.tc.objectserver.impl.TopologyProvider;
 import com.tc.util.Assert;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,7 +43,6 @@ public class ConsistencyManagerImpl implements ConsistencyManager, GroupEventsLi
   
   private static final Logger CONSOLE = TCLogging.getConsoleLogger();
   private static final Logger LOGGER = LoggerFactory.getLogger(ConsistencyManagerImpl.class);
-  private final int peerServers;
   private boolean activeVote = false;
   private boolean blocked = false;
   private Set<Transition> actions = EnumSet.noneOf(Transition.class);
@@ -56,14 +56,14 @@ public class ConsistencyManagerImpl implements ConsistencyManager, GroupEventsLi
   public Map<String, ?> getStateMap() {
     Map<String, Object> map = new LinkedHashMap<>();
     map.put("type", "Consistency");
-    map.put("peerServers", peerServers);
+    map.put("peerServers", TopologyProvider.get().getTopology());
     map.put("activeVote", activeVote);
     map.put("blocked", blocked);
     map.put("actions", new HashSet<>(actions).stream().map(Transition::toString).collect(Collectors.toList()));
     map.put("votingTerm", voteTerm);
     map.put("blockedAt", blockedAt);
-    map.put("activePeers", new ArrayList<>(activePeers).stream().map(n->n.toString()).collect(Collectors.toList()));
-    map.put("passives", new ArrayList<>(passives).stream().map(n->n.toString()).collect(Collectors.toList()));
+    map.put("activePeers", new ArrayList<>(activePeers).stream().map(NodeID::toString).collect(Collectors.toList()));
+    map.put("passives", new ArrayList<>(passives).stream().map(NodeID::toString).collect(Collectors.toList()));
     Map<String, Object> voteMap = new LinkedHashMap<>();
     voteMap.put("registered", voter.getRegisteredVoters());
     voteMap.put("count", voter.getVoteCount());
@@ -73,10 +73,9 @@ public class ConsistencyManagerImpl implements ConsistencyManager, GroupEventsLi
     return map;
   }
   
-  public ConsistencyManagerImpl(int knownPeers, int voters) {
+  public ConsistencyManagerImpl() {
     try {
-      this.peerServers = knownPeers;
-      this.voter = new ServerVoterManagerImpl(voters);
+      this.voter = new ServerVoterManagerImpl();
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -133,9 +132,10 @@ public class ConsistencyManagerImpl implements ConsistencyManager, GroupEventsLi
     
     // activate voting to lock the voting members and return the number of server votes
     int serverVotes = activateVoting(mode, newMode);
+    int peerServers = TopologyProvider.get().getTopology().getServers().size() - 1;
 
-    int threshold = voteThreshold(mode);
-    if (serverVotes >= threshold || serverVotes == this.peerServers) {
+    int threshold = voteThreshold(mode, peerServers);
+    if (serverVotes >= threshold || serverVotes == peerServers) {
     // if the threshold is achieved with just servers or all the servers are visible, transition is granted
       CONSOLE.info("Action:{} allowed because enough servers are connected", newMode);
       endVoting(true, newMode);
@@ -150,7 +150,7 @@ public class ConsistencyManagerImpl implements ConsistencyManager, GroupEventsLi
     long start = System.currentTimeMillis();
     try {
       if (voter.getRegisteredVoters() + serverVotes < threshold) {
-        CONSOLE.warn("Not enough registered voters.  Require override intervention or {} members of the stripe to be connected for action {}", this.peerServers + 1 > threshold ? threshold : "all", newMode);
+        CONSOLE.warn("Not enough registered voters.  Require override intervention or {} members of the stripe to be connected for action {}", peerServers + 1 > threshold ? threshold : "all", newMode);
       } else while (!allow && System.currentTimeMillis() - start < ServerVoterManagerImpl.VOTEBEAT_TIMEOUT) {
         try {
           //  servers connected + votes received
@@ -190,7 +190,7 @@ public class ConsistencyManagerImpl implements ConsistencyManager, GroupEventsLi
     return Collections.unmodifiableSet(actions);
   }
 
-  private int voteThreshold(ServerMode mode) {
+  private int voteThreshold(ServerMode mode, int peerServers) {
     //  peer servers plus extra votes plus self is the total votes available
     int voteCount = peerServers + voter.getVoterLimit() + 1;
     if (mode == ServerMode.ACTIVE) {

@@ -27,6 +27,8 @@ public interface TCServerInfoMBean extends TerracottaMBean, RuntimeStatisticCons
   public static final String STOPPED    = "jmx.terracotta.L2.stopped";
   public static final String VERBOSE_GC = "jmx.terracotta.L2.verboseGC";
 
+  boolean addPassive(String hostPort);
+
   boolean isStarted();
 
   boolean isActive();

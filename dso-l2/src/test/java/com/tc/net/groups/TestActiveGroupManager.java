@@ -22,6 +22,7 @@ import com.tc.async.api.Sink;
 import com.tc.config.GroupConfiguration;
 import com.tc.net.NodeID;
 import com.tc.net.ServerID;
+import com.tc.objectserver.impl.Topology;
 import com.tc.util.Assert;
 import com.tc.util.UUID;
 import java.util.Collections;
@@ -180,6 +181,11 @@ public class TestActiveGroupManager implements GroupManager<GroupMessage> {
   public void closeMember(ServerID next) {
 
     //
+  }
+
+  @Override
+  public boolean addNewTopology(Topology topology) {
+    return false;
   }
 
   @Override

@@ -77,6 +77,8 @@ import com.tc.objectserver.core.api.ServerConfigurationContext;
 import com.tc.objectserver.handler.ReceiveGroupMessageHandler;
 import com.tc.objectserver.handler.TCGroupHandshakeMessageHandler;
 import com.tc.objectserver.handler.TCGroupMemberDiscoveryHandler;
+import com.tc.objectserver.impl.Topology;
+import com.tc.objectserver.impl.TopologyProvider;
 import com.tc.properties.ReconnectConfig;
 import com.tc.properties.TCProperties;
 import com.tc.properties.TCPropertiesConsts;
@@ -149,6 +151,8 @@ public class TCGroupManagerImpl implements GroupManager<AbstractGroupMessage>, C
   private Stage<TCGroupHandshakeMessage> handshakeMessageStage;
   private Stage<DiscoveryStateMachine> discoveryStage;
 
+  private Topology newTopology;
+
   /*
    * Setup a communication manager which can establish channel from either sides.
    */
@@ -177,11 +181,9 @@ public class TCGroupManagerImpl implements GroupManager<AbstractGroupMessage>, C
 
     TCSocketAddress socketAddress;
     try {
-      int groupConnectPort = groupPort;
-
       // proxy group port. use a different group port from tc.properties (if exist) than the one on tc-config
       // currently used by L2Reconnect proxy test.
-      groupConnectPort = TCPropertiesImpl.getProperties()
+      int groupConnectPort = TCPropertiesImpl.getProperties()
           .getInt(TCPropertiesConsts.L2_NHA_TCGROUPCOMM_RECONNECT_L2PROXY_TO_PORT, groupPort);
 
       socketAddress = new TCSocketAddress(l2DSOConfig.getTsaPort().getBind(), groupConnectPort);
@@ -234,7 +236,8 @@ public class TCGroupManagerImpl implements GroupManager<AbstractGroupMessage>, C
     final Map<TCMessageType, Class<? extends TCMessage>> messageTypeClassMapping = new HashMap<>();
     initMessageTypeClassMapping(messageTypeClassMapping);
     
-    connectionManager = new TCConnectionManagerImpl(CommunicationsManager.COMMSMGR_GROUPS, serverCount <= 1 ? 0 : serverCount, new HealthCheckerConfigImpl(tcProperties
+    connectionManager = new TCConnectionManagerImpl(CommunicationsManager.COMMSMGR_GROUPS, serverCount <= 1 ? 0 :
+        serverCount, new HealthCheckerConfigImpl(tcProperties
                                                               .getPropertiesFor(TCPropertiesConsts.L2_L2_HEALTH_CHECK_CATEGORY), "TCGroupManager"), bufferManagerFactory);
     communicationsManager = new CommunicationsManagerImpl(new NullMessageMonitor(), messageRouter,
                                                           networkStackHarnessFactory, 
@@ -431,6 +434,22 @@ public class TCGroupManagerImpl implements GroupManager<AbstractGroupMessage>, C
       logger.warn("Closing down member for " + serverID + " - member doesn't exist.");
     }
 
+  }
+
+  @Override
+  public synchronized boolean addNewTopology(Topology topology) {
+    if (newTopology != null) {
+      return false;
+    }
+    this.newTopology = topology;
+    return true;
+  }
+
+  public synchronized void switchTopology(ServerID peerNodeID) {
+    TopologyProvider.get().setTopology(this.newTopology);
+    this.newTopology = null;
+    String[] tokens = peerNodeID.getName().split(":");
+    getDiscover().addNode(new Node(tokens[0], Integer.parseInt(tokens[1])));
   }
 
   private void closeMember(TCGroupMember member) {
@@ -1169,7 +1188,19 @@ public class TCGroupManagerImpl implements GroupManager<AbstractGroupMessage>, C
       @Override
       public void execute(TCGroupHandshakeMessage msg) {
         setPeerNodeID(msg);
+        boolean valid = false;
         if (!manager.getDiscover().isValidClusterNode(peerNodeID)) {
+          if (manager.newTopology != null) {
+            if (manager.newTopology.getServers().contains(peerNodeID.getName())) {
+              manager.switchTopology(peerNodeID);
+              valid = true;
+            }
+          }
+        } else {
+          valid = true;
+        }
+
+        if (!valid) {
           logger.warn("Drop connection from non-member node " + peerNodeID);
           switchToState(STATE_FAILURE);
           return;

@@ -419,6 +419,11 @@ public class TCServerImpl extends SEDA implements TCServer {
   }
 
   @Override
+  public boolean addPassive(String hostPort) {
+    return dsoServer.addPassive(hostPort);
+  }
+
+  @Override
   public String[] processArguments() {
     return configurationSetupManager.getProcessArguments();
   }

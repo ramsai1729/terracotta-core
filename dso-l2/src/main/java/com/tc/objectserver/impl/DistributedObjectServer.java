@@ -183,6 +183,7 @@ import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -549,6 +550,9 @@ public class DistributedObjectServer implements ServerConnectionValidator {
         ConsistencyManager.parseVoteCount(this.configSetupManager.getConfiguration().getPlatformConfiguration());
     int knownPeers = this.configSetupManager.allCurrentlyKnownServers().length - 1;
 
+    Topology topology = new Topology(new HashSet<>(Arrays.asList(this.configSetupManager.allCurrentlyKnownServers())), voteCount);
+    TopologyProvider.get().setTopology(topology);
+
     if (voteCount >= 0 && (voteCount + knownPeers + 1) % 2 == 0) {
       consoleLogger.warn("It is recommended to keep the total number of servers and external voters to be an odd number");
     }
@@ -690,7 +694,7 @@ public class DistributedObjectServer implements ServerConnectionValidator {
     haChecker.validateHealthCheckSettingsForHighAvailability();
 
     StateManager state = new StateManagerImpl(DistributedObjectServer.consoleLogger, this.groupCommManager, 
-        createStageController(processTransactionHandler, knownPeers > 0), eventCollector, stageManager, 
+        createStageController(processTransactionHandler, knownPeers > 0), eventCollector, stageManager,
         configSetupManager.getGroupConfiguration().getMembers().length,
         configSetupManager.getGroupConfiguration().getElectionTimeInSecs(),
         this.globalWeightGeneratorFactory, consistencyMgr, 
@@ -829,8 +833,7 @@ public class DistributedObjectServer implements ServerConnectionValidator {
     return new SafeStartupManagerImpl(
         consistentStartup,
         knownPeers,
-        (voteCount < 0 || knownPeers == 0) ?
-            new AvailabilityManagerImpl() : new ConsistencyManagerImpl(knownPeers, voteCount)
+        (voteCount < 0 || knownPeers == 0) ? new AvailabilityManagerImpl() : new ConsistencyManagerImpl()
     );
   }
 
@@ -1234,4 +1237,14 @@ public class DistributedObjectServer implements ServerConnectionValidator {
     return persistor;
   }
 
+  public boolean addPassive(String hostPort) {
+    Topology old = TopologyProvider.get().getTopology();
+
+    Set<String> newServers = new HashSet<>(old.getServers());
+    if (newServers.add(hostPort)) {
+      return this.groupCommManager.addNewTopology(new Topology(newServers, old.getVoters()));
+    }
+
+    return false;
+  }
 }
