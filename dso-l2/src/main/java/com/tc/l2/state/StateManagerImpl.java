@@ -86,8 +86,8 @@ public class StateManagerImpl implements StateManager {
   Enrollment verification = null;
 
   public StateManagerImpl(Logger consoleLogger, GroupManager<AbstractGroupMessage> groupManager,
-                          StageController controller, ManagementTopologyEventCollector eventCollector, StageManager mgr, 
-                          int expectedServers, int electionTimeInSec, WeightGeneratorFactory weightFactory,
+                          StageController controller, ManagementTopologyEventCollector eventCollector,
+                          StageManager mgr, int electionTimeInSec, WeightGeneratorFactory weightFactory,
                           ConsistencyManager availabilityMgr, 
                           ClusterStatePersistor clusterStatePersistor) {
     this.consoleLogger = consoleLogger;
@@ -96,7 +96,7 @@ public class StateManagerImpl implements StateManager {
     this.eventCollector = eventCollector;
     this.weightsFactory = weightFactory;
     this.availabilityMgr = availabilityMgr;
-    this.electionMgr = new ElectionManagerImpl(groupManager, expectedServers, electionTimeInSec);
+    this.electionMgr = new ElectionManagerImpl(groupManager, electionTimeInSec);
     this.electionSink = mgr.createStage(ServerConfigurationContext.L2_STATE_ELECTION_HANDLER, ElectionContext.class, this.electionMgr.getEventHandler(), 1, 1024).getSink();
     this.publishSink = mgr.createStage(ServerConfigurationContext.L2_STATE_CHANGE_STAGE, StateChangedEvent.class, EventHandler.consumer(this::publishStateChange), 1, 1024).getSink();
     this.clusterStatePersistor = clusterStatePersistor;

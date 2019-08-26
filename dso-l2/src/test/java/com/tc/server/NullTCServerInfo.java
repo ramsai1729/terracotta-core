@@ -102,6 +102,11 @@ public class NullTCServerInfo extends AbstractTerracottaMBean implements TCServe
   }
 
   @Override
+  public boolean addPassive(String hostPort) {
+    return false;
+  }
+
+  @Override
   public boolean isStarted() {
     return false;
   }

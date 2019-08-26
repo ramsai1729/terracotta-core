@@ -20,6 +20,7 @@ package com.tc.l2.state;
 
 import com.tc.management.AbstractTerracottaMBean;
 import com.tc.management.TerracottaManagement;
+import com.tc.objectserver.impl.TopologyProvider;
 import com.tc.services.TimeSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +36,6 @@ public class ServerVoterManagerImpl extends AbstractTerracottaMBean implements S
 
   static final long VOTEBEAT_TIMEOUT = 5000;  // In milliseconds
 
-  private final int voterLimit;
   final Map<String, Long> voters = new ConcurrentHashMap<>();
   private final TimeSource timeSource;
 
@@ -45,11 +45,11 @@ public class ServerVoterManagerImpl extends AbstractTerracottaMBean implements S
 
   private volatile boolean overrideVote = false;
 
-  public ServerVoterManagerImpl(int voterLimit) throws Exception {
-    this(voterLimit, TimeSource.SYSTEM_TIME_SOURCE, true);
+  public ServerVoterManagerImpl() throws Exception {
+    this(TimeSource.SYSTEM_TIME_SOURCE, true);
   }
 
-  ServerVoterManagerImpl(int voterLimit, TimeSource timeSource, boolean initMBean) throws Exception {
+  ServerVoterManagerImpl(TimeSource timeSource, boolean initMBean) throws Exception {
     super(ServerVoterManager.class, false);
     if (initMBean) {
       try {
@@ -59,14 +59,13 @@ public class ServerVoterManagerImpl extends AbstractTerracottaMBean implements S
         logger.warn("problem registering MBean", e);
       }
     }
-    this.voterLimit = voterLimit;
     this.timeSource = timeSource;
     this.electionTerm = 0;
   }
 
   @Override
   public int getVoterLimit() {
-    return voterLimit;
+    return TopologyProvider.get().getTopology().getVoters();
   }
 
   @Override
@@ -87,7 +86,7 @@ public class ServerVoterManagerImpl extends AbstractTerracottaMBean implements S
   }
 
   boolean canAcceptVoter() {
-    return !votingInProgress && getRegisteredVoters() < voterLimit;
+    return !votingInProgress && getRegisteredVoters() < TopologyProvider.get().getTopology().getVoters();
   }
 
   @Override
@@ -160,7 +159,7 @@ public class ServerVoterManagerImpl extends AbstractTerracottaMBean implements S
   @Override
   public int getVoteCount() {
     if (overrideVote) {
-      return voterLimit;
+      return TopologyProvider.get().getTopology().getVoters();
     }
     return votes.size();
   }

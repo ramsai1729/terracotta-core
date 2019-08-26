@@ -35,6 +35,7 @@ import com.tc.net.protocol.tcm.TCMessageType;
 import com.tc.net.protocol.tcm.UnsupportedMessageTypeException;
 import com.tc.objectserver.core.api.Guardian;
 import com.tc.objectserver.core.api.GuardianContext;
+import com.tc.server.TCServer;
 import com.tc.server.TCServerMain;
 import com.tc.util.State;
 import com.tc.util.StringUtil;
@@ -119,6 +120,17 @@ public class DiagnosticsHandler extends AbstractEventHandler<TCMessage> implemen
           TCServerMain.getServer().stop();
           // never used, server is dead
           result = "".getBytes(set);
+          break;
+        case "addPassive":
+          if (cmd.length == 1) {
+            result = "Invalid command: need server:port info".getBytes(set);
+          } else {
+            if (server.addPassive(cmd[1])) {
+              result = ("Added passive: " + cmd[1]).getBytes(set);
+            } else {
+              result = ("Failed to add passive: " + cmd[1]).getBytes(set);
+            }
+          }
           break;
         case "getJMX":
           if (cmd.length != 3) {

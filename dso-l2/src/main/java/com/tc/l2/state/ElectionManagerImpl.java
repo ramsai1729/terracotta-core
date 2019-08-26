@@ -32,6 +32,7 @@ import com.tc.net.groups.GroupEventsListener;
 import com.tc.net.groups.GroupException;
 import com.tc.net.groups.GroupManager;
 import com.tc.net.groups.GroupResponse;
+import com.tc.objectserver.impl.TopologyProvider;
 import com.tc.util.Assert;
 import com.tc.util.State;
 import java.util.Collections;
@@ -64,12 +65,11 @@ public class ElectionManagerImpl implements ElectionManager {
   private Set<NodeID>           passiveStandbys;
 
   private final long            electionTime;
-  private final int             expectedServers;
+  private int             expectedServers;
 
-  public ElectionManagerImpl(GroupManager groupManager, int expectedServers, int electionTimeInSec) {
+  public ElectionManagerImpl(GroupManager groupManager, int electionTimeInSec) {
     this.groupManager = groupManager;
     this.electionTime = electionTimeInSec * 1000;
-    this.expectedServers = expectedServers;
     this.groupManager.registerForGroupEvents(new GroupEventsListener() {
       @Override
       public void nodeJoined(NodeID nodeID) {
@@ -240,6 +240,7 @@ public class ElectionManagerImpl implements ElectionManager {
   private synchronized void electionStarted(Enrollment e, State serverState) {
     if (this.state == ELECTION_IN_PROGRESS) { throw new AssertionError("Election Already in Progress"); }
     this.state = ELECTION_IN_PROGRESS;
+    this.expectedServers = TopologyProvider.get().getTopology().getServers().size();
     this.myVote = e;
     this.serverState = serverState;
     this.winner = null;
