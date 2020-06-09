@@ -29,6 +29,8 @@ import com.tc.net.core.ProductID;
 import com.tc.util.Assert;
 
 import java.net.InetSocketAddress;
+import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * TODO: Document me
@@ -74,7 +76,7 @@ public class ServerMessageChannelImpl extends AbstractMessageChannel implements 
   }
 
   @Override
-  public NetworkStackID open(Iterable<InetSocketAddress> serverAddresses) {
+  public NetworkStackID open(Supplier<Set<InetSocketAddress>> serverAddresses) {
     throw new UnsupportedOperationException("Server channels don't support open()");
   }
 

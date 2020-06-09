@@ -20,11 +20,14 @@ package com.terracotta.connection;
 
 import java.net.InetSocketAddress;
 import java.util.Properties;
+import java.util.Set;
+import java.util.function.Supplier;
 
 
 public class TerracottaInternalClientFactoryImpl implements TerracottaInternalClientFactory {
   @Override
-  public TerracottaInternalClient createL1Client(Iterable<InetSocketAddress> serverAddresses, Properties properties) {
-    return new TerracottaInternalClientImpl(serverAddresses, properties);
+  public TerracottaInternalClient createL1Client(Supplier<Set<InetSocketAddress>> serverAddressesSupplier,
+                                                 Properties properties) {
+    return new TerracottaInternalClientImpl(serverAddressesSupplier, properties);
   }
 }

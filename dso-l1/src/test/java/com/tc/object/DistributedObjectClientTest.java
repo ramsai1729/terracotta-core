@@ -32,10 +32,15 @@ import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
+
 import junit.framework.TestCase;
+
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import static com.tc.object.ClientBuilderFactory.CLIENT_BUILDER_TYPE;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import org.slf4j.LoggerFactory;
 import org.terracotta.connection.ConnectionPropertyNames;
@@ -50,7 +55,7 @@ public class DistributedObjectClientTest extends TestCase {
     connectionProperties.put(ConnectionPropertyNames.CONNECTION_TYPE, ProductID.PERMANENT);
     DistributedObjectClient client =
         new DistributedObjectClient(
-            Collections.singleton(new InetSocketAddress("localhost", new PortChooser().chooseRandomPort())),
+            () -> Collections.singleton(new InetSocketAddress("localhost", new PortChooser().chooseRandomPort())),
             threadGroup,
             connectionProperties
         );
@@ -82,7 +87,7 @@ public class DistributedObjectClientTest extends TestCase {
       public ClientMessageChannel createClientMessageChannel(CommunicationsManager commMgr, SessionProvider sessionProvider, int socketConnectTimeout) {
         ClientMessageChannel channel = Mockito.mock(ClientMessageChannel.class);
         try {
-          Mockito.when(channel.open(Mockito.anyCollection())).thenThrow(new RuntimeException("bad connection"));
+          Mockito.when(channel.open(any(Supplier.class))).thenThrow(new RuntimeException("bad connection"));
         } catch (Exception exp) {
           
         }
@@ -92,7 +97,8 @@ public class DistributedObjectClientTest extends TestCase {
     };
     
     DistributedObjectClient client = new DistributedObjectClient(
-        Collections.singleton(InetSocketAddress.createUnresolved("localhost", new PortChooser().chooseRandomPort())),
+        () -> Collections.singleton(InetSocketAddress.createUnresolved("localhost",
+                                                                     new PortChooser().chooseRandomPort())),
         builder,
         threadGroup,
         null,

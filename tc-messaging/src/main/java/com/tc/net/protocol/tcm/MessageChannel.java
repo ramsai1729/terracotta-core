@@ -31,6 +31,8 @@ import com.tc.util.TCTimeoutException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Outward facing message channel interface. This is the interface that most high level application code wants to deal
@@ -79,7 +81,7 @@ public interface MessageChannel {
   
   public NetworkStackID open(InetSocketAddress serverAddress) throws MaxConnectionsExceededException, TCTimeoutException, UnknownHostException, IOException, CommStackMismatchException;
 
-  public NetworkStackID open(Iterable<InetSocketAddress> serverAddresses) throws MaxConnectionsExceededException,
+  public NetworkStackID open(Supplier<Set<InetSocketAddress>> serverAddresses) throws MaxConnectionsExceededException,
       TCTimeoutException,
       UnknownHostException, IOException, CommStackMismatchException;
 

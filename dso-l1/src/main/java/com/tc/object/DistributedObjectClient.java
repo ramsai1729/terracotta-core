@@ -116,7 +116,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 
 /**
@@ -127,7 +129,7 @@ public class DistributedObjectClient {
   protected static final Logger DSO_LOGGER = LoggerFactory.getLogger(DistributedObjectClient.class);
   
   private final ClientBuilder                        clientBuilder;
-  private final Iterable<InetSocketAddress> serverAddresses;
+  private final Supplier<Set<InetSocketAddress>> serverAddressesSupplier;
   private final TCThreadGroup                        threadGroup;
 
   private ClientMessageChannel                       channel;
@@ -154,16 +156,16 @@ public class DistributedObjectClient {
   private final boolean isAsync;
 
   
-  public DistributedObjectClient(Iterable<InetSocketAddress> serverAddresses, TCThreadGroup threadGroup,
+  public DistributedObjectClient(Supplier<Set<InetSocketAddress>> serverAddressesSupplier, TCThreadGroup threadGroup,
                                  Properties properties) {
-    this(serverAddresses, ClientBuilderFactory.get(ClientBuilderFactory.class).create(properties), threadGroup,
+    this(serverAddressesSupplier, ClientBuilderFactory.get(ClientBuilderFactory.class).create(properties), threadGroup,
          UUID.NULL_ID.toString(), "", false);
   }
 
-  public DistributedObjectClient(Iterable<InetSocketAddress> serverAddresses, ClientBuilder builder, TCThreadGroup threadGroup,
+  public DistributedObjectClient(Supplier<Set<InetSocketAddress>> serverAddressesSupplier, ClientBuilder builder, TCThreadGroup threadGroup,
                                  String uuid, String name, boolean asyncDrive) {
-    Assert.assertNotNull(serverAddresses);
-    this.serverAddresses = serverAddresses;
+    Assert.assertNotNull(serverAddressesSupplier);
+    this.serverAddressesSupplier = serverAddressesSupplier;
     this.threadGroup = threadGroup;
     this.clientBuilder = builder;
     this.uuid = uuid;
@@ -348,18 +350,18 @@ public class DistributedObjectClient {
     while (!clientStopped.isSet()) {
       try {
         DSO_LOGGER.debug("Trying to open channel....");
-        channel.open(serverAddresses);
+        channel.open(serverAddressesSupplier);
         DSO_LOGGER.debug("Channel open");
         break;
       } catch (final TCTimeoutException tcte) {
-        DSO_LOGGER.info("Unable to connect to server/s {} ...sleeping for 5 sec.", serverAddresses);
-        DSO_LOGGER.debug("Timeout connecting to server/s: {} {}", serverAddresses, tcte.getMessage());
+        DSO_LOGGER.info("Unable to connect to server/s {} ...sleeping for 5 sec.", serverAddressesSupplier);
+        DSO_LOGGER.debug("Timeout connecting to server/s: {} {}", serverAddressesSupplier, tcte.getMessage());
         synchronized(clientStopped) {
           clientStopped.wait(5000);
         }
       } catch (final ConnectException e) {
-        DSO_LOGGER.info("Unable to connect to server/s {} ...sleeping for 5 sec.", serverAddresses);
-        DSO_LOGGER.debug("Connection refused from server/s: {} {}", serverAddresses, e.getMessage());
+        DSO_LOGGER.info("Unable to connect to server/s {} ...sleeping for 5 sec.", serverAddressesSupplier);
+        DSO_LOGGER.debug("Connection refused from server/s: {} {}", serverAddressesSupplier, e.getMessage());
         synchronized(clientStopped) {
           clientStopped.wait(5000);
         }
@@ -373,8 +375,8 @@ public class DistributedObjectClient {
         DSO_LOGGER.error(handshake.getMessage());
         throw new IllegalStateException(handshake.getMessage(), handshake);
       } catch (final IOException ioe) {
-        DSO_LOGGER.info("Unable to connect to server/s {} ...sleeping for 5 sec.", serverAddresses);
-        DSO_LOGGER.debug("IOException connecting to server/s: {} {}", serverAddresses, ioe.getMessage());
+        DSO_LOGGER.info("Unable to connect to server/s {} ...sleeping for 5 sec.", serverAddressesSupplier);
+        DSO_LOGGER.debug("IOException connecting to server/s: {} {}", serverAddressesSupplier, ioe.getMessage());
         synchronized(clientStopped) {
           clientStopped.wait(5000);
         }

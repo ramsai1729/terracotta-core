@@ -28,20 +28,22 @@ import java.lang.ref.WeakReference;
 import java.net.InetSocketAddress;
 
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import org.slf4j.LoggerFactory;
 import org.terracotta.connection.ConnectionPropertyNames;
 
 public class DistributedObjectClientFactory {
-  private final Iterable<InetSocketAddress> serverAddresses;
+  private final Supplier<Set<InetSocketAddress>> serverAddressesSupplier;
   private final ClientBuilder builder;
   private final Properties        properties;
 
-  public DistributedObjectClientFactory(Iterable<InetSocketAddress> serverAddresses, ClientBuilder builder,
+  public DistributedObjectClientFactory(Supplier<Set<InetSocketAddress>> serverAddressesSupplier, ClientBuilder builder,
                                         Properties properties) {
-    this.serverAddresses = serverAddresses;
+    this.serverAddressesSupplier = serverAddressesSupplier;
     this.builder = builder;
     this.properties = properties;
   }
@@ -59,7 +61,7 @@ public class DistributedObjectClientFactory {
     final TCThreadGroup group = new TCThreadGroup(throwableHandler, name + "/" + uuid);
     boolean async = Boolean.parseBoolean(this.properties.getProperty(ConnectionPropertyNames.CONNECTION_ASYNC, "false"));
     
-    DistributedObjectClient client = ClientFactory.createClient(serverAddresses, builder, group, uuid, name, async);
+    DistributedObjectClient client = ClientFactory.createClient(serverAddressesSupplier, builder, group, uuid, name, async);
 
     Reference<DistributedObjectClient> ref = new WeakReference<>(client);
     group.addCallbackOnExitDefaultHandler((state)->{

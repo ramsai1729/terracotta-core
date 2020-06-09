@@ -42,7 +42,9 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Supplier;
 
 
 public class ClientMessageChannelImpl extends AbstractMessageChannel implements ClientMessageChannel {
@@ -77,7 +79,7 @@ public class ClientMessageChannelImpl extends AbstractMessageChannel implements 
   }
 
   @Override
-  public NetworkStackID open(Iterable<InetSocketAddress> serverAddresses) throws TCTimeoutException, UnknownHostException, IOException,
+  public NetworkStackID open(Supplier<Set<InetSocketAddress>> serverAddressesSupplier) throws TCTimeoutException, UnknownHostException, IOException,
       MaxConnectionsExceededException, CommStackMismatchException {
     final ChannelStatus status = getStatus();
 
@@ -86,7 +88,7 @@ public class ClientMessageChannelImpl extends AbstractMessageChannel implements 
       // initialize the connection ID, using the local JVM ID
       final ConnectionID cid = new ConnectionID(JvmIDUtil.getJvmID(), (((ClientID) getLocalNodeID()).toLong()), productID);
 
-      final NetworkStackID id = this.initiator.openMessageTransport(serverAddresses, cid);
+      final NetworkStackID id = this.initiator.openMessageTransport(serverAddressesSupplier, cid);
 
       this.channelSessionID = this.sessionProvider.getSessionID();
       channelOpened();

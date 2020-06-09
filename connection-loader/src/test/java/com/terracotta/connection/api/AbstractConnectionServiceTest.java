@@ -35,6 +35,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Properties;
+import java.util.function.Supplier;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.core.Is.is;
@@ -77,7 +78,7 @@ public class AbstractConnectionServiceTest {
     Properties connectionProperties = new Properties();
     connectionProperties.put(testProperty, testPropertyValue);
     connectionService.connect(URI.create(TEST_SCHEME + "://localhost:4000"), connectionProperties);
-    verify(clientFactoryMock).createL1Client(forClass(Iterable.class).capture(), propertiesArgumentCaptor.capture());
+    verify(clientFactoryMock).createL1Client(forClass(Supplier.class).capture(), propertiesArgumentCaptor.capture());
     Properties genericProperties = propertiesArgumentCaptor.getValue();
 
     assertThat(genericProperties.get(ClientBuilderFactory.CLIENT_BUILDER_TYPE), notNullValue());
@@ -93,7 +94,7 @@ public class AbstractConnectionServiceTest {
     connectionProperties.put(testProperty, testPropertyValue);
     InetSocketAddress server = InetSocketAddress.createUnresolved("localhost", 4000);
     connectionService.connect(Collections.singletonList(server), connectionProperties);
-    verify(clientFactoryMock).createL1Client(forClass(Iterable.class).capture(), propertiesArgumentCaptor.capture());
+    verify(clientFactoryMock).createL1Client(forClass(Supplier.class).capture(), propertiesArgumentCaptor.capture());
 
     Properties genericProperties = propertiesArgumentCaptor.getValue();
     assertThat(genericProperties.get(ClientBuilderFactory.CLIENT_BUILDER_TYPE), notNullValue());

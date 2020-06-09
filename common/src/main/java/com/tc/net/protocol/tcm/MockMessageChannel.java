@@ -41,8 +41,10 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.Supplier;
 
 public class MockMessageChannel implements MessageChannelInternal {
 
@@ -143,7 +145,7 @@ public class MockMessageChannel implements MessageChannelInternal {
   }
 
   @Override
-  public NetworkStackID open(Iterable<InetSocketAddress> serverAddresses) throws MaxConnectionsExceededException, TCTimeoutException, UnknownHostException, IOException, CommStackMismatchException {
+  public NetworkStackID open(Supplier<Set<InetSocketAddress>> serverAddresses) throws MaxConnectionsExceededException, TCTimeoutException, UnknownHostException, IOException, CommStackMismatchException {
     throw new UnsupportedOperationException();
   }
   

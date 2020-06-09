@@ -36,6 +36,8 @@ import com.tc.util.TCTimeoutException;
 import com.tc.util.concurrent.SetOnceFlag;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Set;
+import java.util.function.Supplier;
 
 public class ClientNetworkStackHarness extends LayeredNetworkStackHarness {
   protected ClientMessageTransport          transport;
@@ -83,13 +85,13 @@ public class ClientNetworkStackHarness extends LayeredNetworkStackHarness {
     final ClientConnectionEstablisher cce = createClientConnectionEstablisher();
     channel.setMessageTransportInitiator(new MessageTransportInitiator() {
       @Override
-      public NetworkStackID openMessageTransport(Iterable<InetSocketAddress> serverAddresses, ConnectionID connection) throws CommStackMismatchException, IOException, MaxConnectionsExceededException, TCTimeoutException {
+      public NetworkStackID openMessageTransport(Supplier<Set<InetSocketAddress>> serverAddressesSupplier, ConnectionID connection) throws CommStackMismatchException, IOException, MaxConnectionsExceededException, TCTimeoutException {
 //  this is terrible but it sets the send layer of the channel (which is calling open),
 //  sets the connection id in the transport layer, and initiates the connection establisher
 //  to maintain the transport layer under the channel
         channel.setSendLayer(last);
         transport.initConnectionID(connection);
-        return cce.open(serverAddresses, transport, channel);
+        return cce.open(serverAddressesSupplier, transport, channel);
       }
     });
     

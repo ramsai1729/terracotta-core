@@ -39,6 +39,7 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Collections;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -71,7 +72,7 @@ abstract class AbstractMessageChannel implements MessageChannelInternal {
 
   @Override
   public NetworkStackID open(InetSocketAddress serverAddress) throws MaxConnectionsExceededException, TCTimeoutException, UnknownHostException, IOException, CommStackMismatchException {
-    return open(Collections.singleton(serverAddress));
+    return open(() -> Collections.singleton(serverAddress));
   }
 
   @Override

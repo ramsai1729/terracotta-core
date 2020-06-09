@@ -58,7 +58,7 @@ public class ClientConnectionEstablisher {
   private static final long                 MIN_RETRY_INTERVAL    = 1000;
   public static final String                RECONNECT_THREAD_NAME = "ConnectionEstablisher";
 
-  private Iterable<InetSocketAddress>       serverAddresses;
+  private Supplier<Set<InetSocketAddress>> serverAddressesSupplier;
   private final Set<InetSocketAddress>      redirects = new LinkedHashSet<>();
   private final AtomicBoolean               asyncReconnecting     = new AtomicBoolean(false);
   private final AtomicBoolean               allowReconnects       = new AtomicBoolean(true);
@@ -120,21 +120,21 @@ public class ClientConnectionEstablisher {
    * @throws CommStackMismatchException
    * @throws MaxConnectionsExceededException
    */
-  public NetworkStackID open(Iterable<InetSocketAddress> serverAddresses, ClientMessageTransport cmt,
+  public NetworkStackID open(Supplier<Set<InetSocketAddress>> serverAddressesSupplier, ClientMessageTransport cmt,
                              ClientConnectionErrorListener reporter) throws TCTimeoutException, IOException, MaxConnectionsExceededException,
       CommStackMismatchException {
     Assert.assertNotNull(cmt);
     Assert.assertNotNull(reporter);
-    Assert.assertNotNull(serverAddresses);
+    Assert.assertNotNull(serverAddressesSupplier);
     synchronized (this.asyncReconnecting) {
       Assert.eval("Can't call open() while asynch reconnect occurring", !this.asyncReconnecting.get());
       this.allowReconnects.set(true);
-      this.serverAddresses = serverAddresses;
-      return connectTryAllOnce(serverAddresses, cmt, reporter);
+      this.serverAddressesSupplier = serverAddressesSupplier;
+      return connectTryAllOnce(serverAddressesSupplier, cmt, reporter);
     }
   }
 
-  NetworkStackID connectTryAllOnce(Iterable<InetSocketAddress> serverAddresses,
+  NetworkStackID connectTryAllOnce(Supplier<Set<InetSocketAddress>> serverAddresses,
                                    ClientMessageTransport cmt,
                                    ClientConnectionErrorListener reporter) throws TCTimeoutException, IOException,
       MaxConnectionsExceededException, CommStackMismatchException {
@@ -170,7 +170,7 @@ public class ClientConnectionEstablisher {
 
   @Override
   public String toString() {
-    return "ClientConnectionEstablisher[" + this.serverAddresses + "]";
+    return "ClientConnectionEstablisher[" + this.serverAddressesSupplier + "]";
   }
 
   void reconnect(ClientMessageTransport cmt, Supplier<Boolean> stopCheck) throws MaxConnectionsExceededException {
@@ -272,7 +272,7 @@ public class ClientConnectionEstablisher {
   }
 
   private CompositeIterator<InetSocketAddress> getServerAddressIterator() {
-    return new CompositeIterator<>(asList(serverAddresses.iterator(), new LinkedHashSet<>(redirects).iterator()));
+    return new CompositeIterator<>(asList(serverAddressesSupplier.get().iterator(), new LinkedHashSet<>(redirects).iterator()));
   }
 
   private static InetSocketAddress nextServerAddress(Iterator<InetSocketAddress> serverAddressIterator) {
@@ -479,7 +479,7 @@ public class ClientConnectionEstablisher {
     private synchronized void startThreadIfNecessary(ConnectionRequest request) {
   //  Should be synchronized by caller
       if (!disableThreadSpawn) {
-        Thread thread = new Thread(()->execute(request), RECONNECT_THREAD_NAME + "-" + this.cce.serverAddresses.toString() + "-" + System.identityHashCode(request));
+        Thread thread = new Thread(()->execute(request), RECONNECT_THREAD_NAME + "-" + this.cce.serverAddressesSupplier.toString() + "-" + System.identityHashCode(request));
         thread.setDaemon(true);
         thread.start();
         connectionEstablisherThread = thread;

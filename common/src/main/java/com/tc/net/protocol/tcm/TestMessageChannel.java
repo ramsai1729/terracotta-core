@@ -39,6 +39,8 @@ import java.net.UnknownHostException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
 
 public class TestMessageChannel implements MessageChannel {
 
@@ -131,7 +133,7 @@ public class TestMessageChannel implements MessageChannel {
   }
 
   @Override
-  public NetworkStackID open(Iterable<InetSocketAddress> serverAddresses) {
+  public NetworkStackID open(Supplier<Set<InetSocketAddress>> serverAddresses) {
     return null;
   }
 

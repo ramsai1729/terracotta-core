@@ -27,8 +27,11 @@ import com.tc.net.protocol.transport.ClientConnectionErrorDetails;
 import com.terracotta.connection.api.DetailedConnectionException;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 
 public class TerracottaInternalClientImpl implements TerracottaInternalClient {
@@ -42,15 +45,15 @@ public class TerracottaInternalClientImpl implements TerracottaInternalClient {
   private volatile boolean            shutdown             = false;
   private volatile boolean            isInitialized        = false;
 
-  TerracottaInternalClientImpl(Iterable<InetSocketAddress> serverAddresses, Properties props) {
+  TerracottaInternalClientImpl(Supplier<Set<InetSocketAddress>> serverAddressesSupplier, Properties props) {
     try {
-      this.clientCreator = buildClientCreator(serverAddresses, props);
+      this.clientCreator = buildClientCreator(serverAddressesSupplier, props);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
-  private DistributedObjectClientFactory buildClientCreator(Iterable<InetSocketAddress> serverAddresses,
+  private DistributedObjectClientFactory buildClientCreator(Supplier<Set<InetSocketAddress>> serverAddresses,
                                                             Properties props) {
     ClientBuilder clientBuilder = ClientBuilderFactory.get(ClientBuilderFactory.class).create(props);
     if (clientBuilder == null) {

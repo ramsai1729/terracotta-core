@@ -23,14 +23,16 @@ import com.tc.object.ClientBuilder;
 import com.tc.object.DistributedObjectClient;
 
 import java.net.InetSocketAddress;
+import java.util.Set;
+import java.util.function.Supplier;
 
 
 public class ClientFactory {
   // Note that we don't currently use classProvider in this path but it is left here as a remnant from the old shape until
   //  we can verify that it won't be used here.
-  public static DistributedObjectClient createClient(Iterable<InetSocketAddress> serverAddresses, ClientBuilder builder,
+  public static DistributedObjectClient createClient(Supplier<Set<InetSocketAddress>> serverAddressesSupplier, ClientBuilder builder,
                                                      TCThreadGroup threadGroup,
                                                      String uuid, String name, boolean async) {
-    return new DistributedObjectClient(serverAddresses, builder, threadGroup, uuid, name, async);
+    return new DistributedObjectClient(serverAddressesSupplier, builder, threadGroup, uuid, name, async);
   }
 }

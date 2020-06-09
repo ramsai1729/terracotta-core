@@ -24,10 +24,12 @@ import com.tc.net.protocol.NetworkStackID;
 import com.tc.util.TCTimeoutException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  *
  */
 public interface MessageTransportInitiator {
-  NetworkStackID openMessageTransport(Iterable<InetSocketAddress> serverAddresses, ConnectionID connection)  throws CommStackMismatchException, IOException, MaxConnectionsExceededException, TCTimeoutException;
+  NetworkStackID openMessageTransport(Supplier<Set<InetSocketAddress>> serverAddresses, ConnectionID connection)  throws CommStackMismatchException, IOException, MaxConnectionsExceededException, TCTimeoutException;
 }

@@ -313,8 +313,9 @@ try {
     this.clientChannel = createClientMessageChannel(ProductID.STRIPE, clComms);
 
     try {
-      clientChannel.open(Arrays.asList(InetSocketAddress.createUnresolved("localhost", lsnr1.getBindPort()),
-                                       InetSocketAddress.createUnresolved("localhost", lsnr2.getBindPort())));
+      List<InetSocketAddress> inetSocketAddresses = Arrays.asList(InetSocketAddress.createUnresolved("localhost", lsnr1.getBindPort()),
+                                                                  InetSocketAddress.createUnresolved("localhost", lsnr2.getBindPort()));
+      clientChannel.open(() -> new HashSet<>(inetSocketAddresses));
     } catch (TCTimeoutException e) {
       Assert.eval("This is not suppose to happen", false);
     } catch (Throwable t) {

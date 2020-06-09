@@ -34,8 +34,11 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.terracotta.entity.EndpointConnector;
 
@@ -98,7 +101,7 @@ abstract class AbstractConnectionService implements ConnectionService {
       serverAddresses.add(InetSocketAddress.createUnresolved(oneHost.getHost(), port));
     }
 
-    return createConnection(serverAddresses, properties);
+    return createConnection(() -> new HashSet<>(serverAddresses), properties);
   }
 
   @Override
@@ -108,14 +111,21 @@ abstract class AbstractConnectionService implements ConnectionService {
       throw new IllegalArgumentException("Unknown connectionType " + connectionType);
     }
 
-    return createConnection(serverAddresses, properties);
+    final Set<InetSocketAddress> tmpServerAddresses = new HashSet<>();
+    serverAddresses.forEach(tmpServerAddresses::add);
+    return createConnection(() -> tmpServerAddresses, properties);
   }
 
-  private Connection createConnection(Iterable<InetSocketAddress> serverAddresses, Properties properties) throws DetailedConnectionException {
+  @Override
+  public Connection connect(Supplier<Set<InetSocketAddress>> serverAddressesSupplier, Properties properties) throws ConnectionException {
+    return createConnection(serverAddressesSupplier, properties);
+  }
+
+  private Connection createConnection(Supplier<Set<InetSocketAddress>> serverAddressesSupplier, Properties properties) throws DetailedConnectionException {
     properties.put(ClientBuilderFactory.CLIENT_BUILDER_TYPE, ClientBuilderFactory.ClientBuilderType.of(scheme));
     
-    final TerracottaInternalClient client = clientFactory.createL1Client(serverAddresses, properties);
-    properties.put("connection", serverAddresses);
+    final TerracottaInternalClient client = clientFactory.createL1Client(serverAddressesSupplier, properties);
+    properties.put("connection", serverAddressesSupplier);
     client.init();
     return new TerracottaConnection(properties, client.getClientEntityManager(), endpointConnector, client::shutdown);
   }
